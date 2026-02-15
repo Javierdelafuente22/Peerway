@@ -19,8 +19,8 @@ def run_energy_market_simulation(input_file, p2p_output, report_output, alpha=0.
 
     # 2. Simulation Loop
     for index, row in df.iterrows():
-        fit = row['export price']
-        tou = row['import price']
+        fit = row['export_price']
+        tou = row['import_price']
         
         # Calculate Baseline (Grid-Only) for this period
         for agent in agent_ids:
