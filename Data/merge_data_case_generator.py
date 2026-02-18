@@ -13,22 +13,23 @@ ROLES = [
     "Buyer",    # ID 6
     "Buyer",    # ID 7
     "Seller",   # ID 8
-    "Seller"    # ID 9
+    "Seller",   # ID 9
+    "Prosumer"  # ID 10 
 ]
 
 def generate_case_study():
     print("--- Starting Case Study Generator ---")
 
     # 1. Validation
-    if len(ROLES) != 9:
+    if len(ROLES) != 10:
         raise ValueError(f"Configuration Error: You defined {len(ROLES)} roles, but there are 9 profiles.")
 
     # 2. Load Data
     print("Loading raw files...")
     # We use dayfirst=False as per your fix
-    df_prices = pd.read_csv('Prices 2024-25 Octopus.csv')
-    df_demand = pd.read_csv('Demand Profiles 2024-25 Weave.csv')
-    df_supply = pd.read_csv('PV Production 2024-25 Ninja.csv')
+    df_prices = pd.read_csv('prices.csv')
+    df_demand = pd.read_csv('demand.csv')
+    df_supply = pd.read_csv('supply.csv')
 
     # Extract the Master Timestamp (from Prices file)
     # We force convert to datetime to ensure sin/cos works
@@ -99,7 +100,7 @@ def generate_case_study():
     ], axis=1)
 
     # 6. Save
-    output_filename = 'Merged Profiles Case Study.csv'
+    output_filename = 'orderbook.csv'
     final_df.to_csv(output_filename, index=False)
     
     print("SUCCESS!")
