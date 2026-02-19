@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 
 # --- CONFIGURATION: CASE STUDY SETUP ---
-# Define the role for each of the 9 IDs.
+# Define the role for each of the 10 IDs.
 # Options: "Prosumer", "Buyer", "Seller"
 ROLES = [
     "Prosumer", # ID 1
