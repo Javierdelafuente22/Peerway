@@ -9,12 +9,12 @@ ROLES = [
     "Prosumer", # ID 2
     "Prosumer", # ID 3
     "Prosumer", # ID 4
-    "Prosumer", # ID 5
+    "Buyer",    # ID 5
     "Buyer",    # ID 6
-    "Buyer",    # ID 7
+    "Seller",   # ID 7
     "Seller",   # ID 8
-    "Seller",   # ID 9
-    "Prosumer"  # ID 10 
+    "Seller",   # Fixed: ID 9 is windfarm
+    "Prosumer"  # Fixed: ID 10 is user profile
 ]
 
 def generate_case_study():
