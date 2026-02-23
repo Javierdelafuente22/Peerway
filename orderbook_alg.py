@@ -1,12 +1,20 @@
 import pandas as pd
 import numpy as np
 
-def run_energy_market_simulation(input_file, p2p_output, report_output, alpha=0.5):
+def run_energy_market_simulation(input_file, p2p_output, report_output, alpha=0.3):
     # 1. Load Data
-    # Note: Use pd.read_excel(input_file) for .xlsx files
-    df = pd.read_excel(input_file)
+    # Note: Use pd.read_csv(input_file) for .csv files
+    df = pd.read_csv(input_file)
 
-    metadata_cols = ['timestamp', 'export price', 'import price']
+    metadata_cols = [
+        'timestamp', 
+        'time_year_sin', 
+        'time_year_cos', 
+        'time_day_sin', 
+        'time_day_cos', 
+        'import_price', 
+        'export_price'
+    ]
     agent_ids = [col for col in df.columns if col not in metadata_cols]
     
     # Containers for results
@@ -105,4 +113,4 @@ def run_energy_market_simulation(input_file, p2p_output, report_output, alpha=0.
     print(f"Success. Files generated: {p2p_output}, {report_output}")
 
 # Execution
-run_energy_market_simulation('order_book_fake.xlsx', 'p2p_financial_results.csv', 'savings_report.csv')
+run_energy_market_simulation('data/orderbook.csv', 'detailed_transactions.csv', 'summary_transactions.csv')
