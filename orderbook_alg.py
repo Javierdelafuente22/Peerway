@@ -1,7 +1,9 @@
 import pandas as pd
 import numpy as np
+import time
 
 def run_energy_market_simulation(input_file, alpha_file, detailed_transactions, summary_transactions):
+
     # 1. Load Data
     df = pd.read_csv(input_file)
     df_alphas = pd.read_csv(alpha_file)
@@ -16,6 +18,13 @@ def run_energy_market_simulation(input_file, alpha_file, detailed_transactions, 
         'export_price'
     ]
     agent_ids = [col for col in df.columns if col not in metadata_cols]
+
+    # Load the alpha dataset and explicitly overwrite its headers
+    df_alphas = pd.read_csv(alpha_file)
+    # Since we know it has exactly the same number of columns (10 agents), this is safe
+    df_alphas.columns = agent_ids
+    # Overwrite the physical file so the headers are permanently corrected
+    df_alphas.to_csv(alpha_file, index=False)
     
     # Containers for results
     p2p_financials = df.copy()
@@ -108,25 +117,62 @@ def run_energy_market_simulation(input_file, alpha_file, detailed_transactions, 
     for agent in agent_ids:
         m = metrics[agent]
         total_vol = m['p2p_kWh'] + m['grid_kWh']
+        
+        # Calculate Savings Percentage: (P2P_Net - Baseline_Net) / abs(Baseline_Net) * 100
+        savings_pct = 0.0
+        if abs(m['baseline_net']) > 1e-9:
+            savings_pct = ((m['p2p_net'] - m['baseline_net']) / abs(m['baseline_net'])) * 100
+
         report_list.append({
             'Agent': agent,
-            'Baseline Net (£)': round(m['baseline_net'], 4),
-            'P2P Net (£)': round(m['p2p_net'], 4),
-            'Savings (£)': round(m['p2p_net'] - m['baseline_net'], 4),
+            'Baseline Costs': round(m['baseline_net'], 2),
+            'P2P Costs': round(m['p2p_net'], 2),
+            'Savings %': round(savings_pct, 2),
             'P2P Traded (kWh)': round(m['p2p_kWh'], 2),
             'Grid Traded (kWh)': round(m['grid_kWh'], 2),
             'Peer Trade %': round((m['p2p_kWh'] / total_vol * 100), 2) if total_vol > 0 else 0
         })
 
+    # --- COMMUNITY TOTAL ROW ---
+    final_report = pd.DataFrame(report_list)
+    
+    totals = {
+        'Agent': 'COMMUNITY TOTAL',
+        'Baseline Costs': final_report['Baseline Costs'].sum(),
+        'P2P Costs': final_report['P2P Costs'].sum(),
+        'P2P Traded (kWh)': final_report['P2P Traded (kWh)'].sum(),
+        'Grid Traded (kWh)': final_report['Grid Traded (kWh)'].sum()
+    }
+    
+    # Recalculate percentages for the whole community
+    if abs(totals['Baseline Costs']) > 1e-9:
+        totals['Savings %'] = round(((totals['P2P Costs'] - totals['Baseline Costs']) / abs(totals['Baseline Costs'])) * 100, 2)
+    else:
+        totals['Savings %'] = 0.0
+        
+    total_market_vol = totals['P2P Traded (kWh)'] + totals['Grid Traded (kWh)']
+    totals['Peer Trade %'] = round((totals['P2P Traded (kWh)'] / total_market_vol * 100), 2) if total_market_vol > 0 else 0
+
+    # Add the totals row to the dataframe
+    final_report = pd.concat([final_report, pd.DataFrame([totals])], ignore_index=True)
+
     # 4. Save to files
-    pd.DataFrame(report_list).to_csv(summary_transactions, index=False)
+    final_report.to_csv(summary_transactions, index=False)
     p2p_financials.to_csv(detailed_transactions, index=False)
     print(f"Success. Files generated: {detailed_transactions}, {summary_transactions}")
 
+    # 5. Print main KPIs
+    comm_row = final_report.iloc[-1]
+    print(f"Community Total Savings: {comm_row['Savings %']}%")
+    print(f"Community Total Peer Trade: {comm_row['Peer Trade %']}%")
+
 # Execution
+start_time = time.time()
 run_energy_market_simulation(
     input_file='data/orderbook.csv', 
     alpha_file='data/alphas.csv', 
     detailed_transactions='orderbook_results/detailed_transactions.csv', 
     summary_transactions='orderbook_results/summary_transactions.csv'
 )
+# Timer for performance tracking
+print(f"Total Runtime: {time.time() - start_time:.4f} seconds")
