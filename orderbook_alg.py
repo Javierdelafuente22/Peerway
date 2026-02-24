@@ -3,8 +3,9 @@ import numpy as np
 import time
 
 def run_energy_market_simulation(input_file, alpha_file, detailed_transactions, summary_transactions):
-
+    
     # 1. Load Data
+    start_time = time.time()
     df = pd.read_csv(input_file)
     df_alphas = pd.read_csv(alpha_file)
 
@@ -21,9 +22,7 @@ def run_energy_market_simulation(input_file, alpha_file, detailed_transactions, 
 
     # Load the alpha dataset and explicitly overwrite its headers
     df_alphas = pd.read_csv(alpha_file)
-    # Since we know it has exactly the same number of columns (10 agents), this is safe
     df_alphas.columns = agent_ids
-    # Overwrite the physical file so the headers are permanently corrected
     df_alphas.to_csv(alpha_file, index=False)
     
     # Containers for results
@@ -31,13 +30,35 @@ def run_energy_market_simulation(input_file, alpha_file, detailed_transactions, 
     for agent in agent_ids: 
         p2p_financials[agent] = 0.0
     
+    # New Column for Detailed Transactions
+    p2p_financials['Community_State'] = ''
+    
     # Metrics tracking for the summary report
     metrics = {agent: {'p2p_kWh': 0.0, 'grid_kWh': 0.0, 'baseline_net': 0.0, 'p2p_net': 0.0} for agent in agent_ids}
+    
+    # Community state counters
+    count_shortage = 0
+    count_surplus = 0
+    count_balance = 0
 
     # 2. Simulation Loop
     for index, row in df.iterrows():
         fit = row['export_price']
         tou = row['import_price']
+        
+        # Determine Community State for this timestamp
+        net_demand = sum([row[agent] for agent in agent_ids])
+        if net_demand > 1e-9:
+            state = 'Shortage'
+            count_shortage += 1
+        elif net_demand < -1e-9:
+            state = 'Surplus'
+            count_surplus += 1
+        else:
+            state = 'Balance'
+            count_balance += 1
+            
+        p2p_financials.at[index, 'Community_State'] = state
         
         # Calculate Baseline (Grid-Only) for this period
         for agent in agent_ids:
@@ -130,7 +151,10 @@ def run_energy_market_simulation(input_file, alpha_file, detailed_transactions, 
             'Savings %': round(savings_pct, 2),
             'P2P Traded (kWh)': round(m['p2p_kWh'], 2),
             'Grid Traded (kWh)': round(m['grid_kWh'], 2),
-            'Peer Trade %': round((m['p2p_kWh'] / total_vol * 100), 2) if total_vol > 0 else 0
+            'Peer Trade %': round((m['p2p_kWh'] / total_vol * 100), 2) if total_vol > 0 else 0,
+            'Shortage Periods': '', # Blank for individual agents
+            'Surplus Periods': '',  # Blank for individual agents
+            'Balance Periods': ''   # Blank for individual agents
         })
 
     # --- COMMUNITY TOTAL ROW ---
@@ -141,7 +165,10 @@ def run_energy_market_simulation(input_file, alpha_file, detailed_transactions, 
         'Baseline Costs': final_report['Baseline Costs'].sum(),
         'P2P Costs': final_report['P2P Costs'].sum(),
         'P2P Traded (kWh)': final_report['P2P Traded (kWh)'].sum(),
-        'Grid Traded (kWh)': final_report['Grid Traded (kWh)'].sum()
+        'Grid Traded (kWh)': final_report['Grid Traded (kWh)'].sum(),
+        'Shortage Periods': count_shortage,
+        'Surplus Periods': count_surplus,
+        'Balance Periods': count_balance
     }
     
     # Recalculate percentages for the whole community
@@ -161,18 +188,16 @@ def run_energy_market_simulation(input_file, alpha_file, detailed_transactions, 
     p2p_financials.to_csv(detailed_transactions, index=False)
     print(f"Success. Files generated: {detailed_transactions}, {summary_transactions}")
 
-    # 5. Print main KPIs
+    # 5. Print KPIs
     comm_row = final_report.iloc[-1]
     print(f"Community Total Savings: {comm_row['Savings %']}%")
     print(f"Community Total Peer Trade: {comm_row['Peer Trade %']}%")
+    print(f"Total Runtime: {time.time() - start_time:.4f} seconds")
 
 # Execution
-start_time = time.time()
 run_energy_market_simulation(
     input_file='data/orderbook.csv', 
     alpha_file='data/alphas.csv', 
     detailed_transactions='orderbook_results/detailed_transactions.csv', 
     summary_transactions='orderbook_results/summary_transactions.csv'
 )
-# Timer for performance tracking
-print(f"Total Runtime: {time.time() - start_time:.4f} seconds")
