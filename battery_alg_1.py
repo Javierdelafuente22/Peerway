@@ -1,6 +1,6 @@
 # battery_alg_1.py
 
-class SmartBattery:
+class Battery_v1:
     def __init__(self, max_rate=0.4, efficiency=0.95, min_soc=0.0, max_soc=1.0):
         self.max_rate = max_rate
         self.efficiency = efficiency

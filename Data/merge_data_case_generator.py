@@ -5,16 +5,16 @@ import numpy as np
 # Define the role for each of the 10 IDs.
 # Options: "Prosumer", "Buyer", "Seller"
 ROLES = [
-    "Prosumer", # ID 1
+    "Prosumer", # Fixed: ID 1 is user profile
     "Prosumer", # ID 2
     "Prosumer", # ID 3
     "Prosumer", # ID 4
-    "Buyer",    # ID 5
+    "Prosumer", # ID 5
     "Buyer",    # ID 6
-    "Seller",   # ID 7
+    "Buyer",    # ID 7
     "Seller",   # ID 8
-    "Seller",   # Fixed: ID 9 is windfarm
-    "Prosumer"  # Fixed: ID 10 is user profile
+    "Seller",   # ID 9
+    "Seller"    # Fixed: ID 10 is windfarm
 ]
 
 def generate_case_study():

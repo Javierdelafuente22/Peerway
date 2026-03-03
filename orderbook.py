@@ -1,11 +1,11 @@
-# orderbook_main.py
 import pandas as pd
 import numpy as np
 from collections import deque
 import time
 
+# Generate orderbook in data/merge_data_case_generator.py before running. Not automated to avoid wasting computational time, since it does not change often
 # Import your battery models here
-from battery_alg_1 import SmartBattery
+from battery_alg_1 import Battery_v1
 
 def run_energy_market_simulation(input_file, alpha_file, detailed_transactions, summary_transactions, target_users, battery_class):
     df = pd.read_csv(input_file)
@@ -135,8 +135,8 @@ if __name__ == "__main__":
         alpha_file='data/alphas.csv', 
         detailed_transactions='orderbook_results/detailed_transactions.csv', 
         summary_transactions='orderbook_results/summary_transactions.csv',
-        target_users=['10_Prosumer'],       # Add users for battery logic
-        battery_class=SmartBattery          # Swap name for different algorithms
+        target_users=['1_Prosumer', '2_Prosumer', '3_Prosumer', '4_Prosumer', '5_Prosumer'],  # Add users for battery logic
+        battery_class=Battery_v1   # Swap name for different algorithms
     )
     
     print(f"Runtime: {time.time() - start:.4f}s")
