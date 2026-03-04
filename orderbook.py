@@ -5,7 +5,7 @@ import time
 
 # Generate orderbook in data/merge_data_case_generator.py before running. Not automated to avoid wasting computational time, since it does not change often
 # Import your battery models here
-from battery_alg_1 import Battery_v1
+from battery_alg_v1 import Battery_v1
 
 def run_energy_market_simulation(input_file, alpha_file, detailed_transactions, summary_transactions, target_users, battery_class):
     df = pd.read_csv(input_file)
