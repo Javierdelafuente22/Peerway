@@ -135,7 +135,7 @@ if __name__ == "__main__":
         alpha_file='data/alphas.csv', 
         detailed_transactions='orderbook_results/detailed_transactions.csv', 
         summary_transactions='orderbook_results/summary_transactions.csv',
-        target_users=['1_Prosumer', '2_Prosumer', '3_Prosumer', '4_Prosumer', '5_Prosumer'],  # Add users for battery logic
+        target_users=['1_Prosumer'],  # Add users for battery logic
         battery_class=Battery_v1   # Swap name for different algorithms
     )
     
