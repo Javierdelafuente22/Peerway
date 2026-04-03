@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import holidays 
 
 # --- CONFIGURATION: CASE STUDY SETUP ---
 # Define the role for each of the 10 IDs.
@@ -26,14 +27,14 @@ def generate_case_study():
 
     # 2. Load Data
     print("Loading raw files...")
-    # We use dayfirst=False as per your fix
+    # We use dayfirst=True as per your fix
     df_prices = pd.read_csv('prices.csv')
     df_demand = pd.read_csv('demand.csv')
     df_supply = pd.read_csv('supply.csv')
 
     # Extract the Master Timestamp (from Prices file)
     # We force convert to datetime to ensure sin/cos works
-    timestamp_col = pd.to_datetime(df_prices.iloc[:, 0], dayfirst=False)
+    timestamp_col = pd.to_datetime(df_prices.iloc[:, 0], dayfirst=True)
     
     # 3. GENERATE CYCLIC FEATURES (Rounded to 4 decimals)
     print("Generating Time Features...")
@@ -47,11 +48,18 @@ def generate_case_study():
     year_sin = np.sin(2 * np.pi * timestamp_col.dt.dayofyear / 365.25).round(4)
     year_cos = np.cos(2 * np.pi * timestamp_col.dt.dayofyear / 365.25).round(4)
 
+    # Working Day Flag (UK)
+    uk_holidays = holidays.UK()
+    is_weekend = timestamp_col.dt.dayofweek >= 5
+    is_holiday = timestamp_col.dt.date.apply(lambda d: d in uk_holidays)
+    is_working_day = (~is_weekend & ~is_holiday).astype(int)
+
     df_features = pd.DataFrame({
         'time_year_sin': year_sin,
         'time_year_cos': year_cos,
         'time_day_sin': day_sin,
-        'time_day_cos': day_cos
+        'time_day_cos': day_cos,
+        'is_working_day': is_working_day
     })
 
     # 4. CALCULATE PROFILES BASED ON ROLES
@@ -59,7 +67,7 @@ def generate_case_study():
     
     profile_data = {}
 
-    # We loop through 0 to 8 (corresponding to columns 1 to 9 in raw files)
+    # We loop through 0 to 9 (corresponding to columns 1 to 10 in raw files)
     for i, role in enumerate(ROLES):
         # We skip the first column (timestamp) using i+1
         # .values ensures we calculate using raw numbers (no index mismatch errors)
@@ -86,17 +94,26 @@ def generate_case_study():
     # Convert dictionary to DataFrame
     df_profiles = pd.DataFrame(profile_data)
 
+    # 4.5 CALCULATE NET COMMUNITY (Excluding Agent 1)
+    print("Calculating Community Net Load (excluding Agent 1)...")
+    # We sum columns 2 through 10 (indices 1 to the end) to exclude our target agent
+    raw_community_net = df_profiles.iloc[:, 1:].sum(axis=1)
+    # Max-Absolute Normalization to keep 0 as true balance
+    max_abs_net = raw_community_net.abs().max()
+    norm_community_net = (raw_community_net / max_abs_net).round(4)
+
     # 5. ASSEMBLE FINAL DATAFRAME
     print("Assembling final file...")
     
-    # Get Import/Export Prices (Columns 1 and 2)
-    df_price_data = df_prices.iloc[:, 1:3]
+    # Get Import/Export Prices and Spread (Columns 1, 2, and 3)
+    df_price_data = df_prices.iloc[:, 1:4]
 
     final_df = pd.concat([
         timestamp_col.rename("timestamp"), # 1. Time
-        df_features,                       # 2. Sin/Cos Features
-        df_price_data,                     # 3. Prices
-        df_profiles                        # 4. The 9 Generated Profiles
+        df_features,                       # 2. Sin/Cos Features + Working Day
+        df_price_data,                     # 3. Prices + Spread
+        norm_community_net.rename('net_community'), # 4. Community Net Signal
+        df_profiles                        # 5. The 10 Generated Profiles
     ], axis=1)
 
     # 6. Save
