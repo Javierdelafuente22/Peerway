@@ -4,7 +4,7 @@ from collections import deque
 import time
 
 # Import your RL Battery class
-from archived.Qlearning.battery_alg_qlearning import QLearningBattery
+from trading_algorithms.Qlearning.battery_alg_qlearning import QLearningBattery
 
 def run_rl_market_simulation(input_file, alpha_file, detailed_output, summary_output, target_users):
     # 1. Setup & Load Data

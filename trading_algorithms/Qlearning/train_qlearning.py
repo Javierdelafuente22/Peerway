@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 from collections import deque
-from archived.Qlearning.battery_alg_qlearning import QLearningBattery
+from trading_algorithms.Qlearning.battery_alg_qlearning import QLearningBattery
 
 def train_agent(episodes=500):
     df = pd.read_csv('data/orderbook.csv')

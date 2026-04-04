@@ -109,11 +109,11 @@ def generate_case_study():
     df_price_data = df_prices.iloc[:, 1:4]
 
     final_df = pd.concat([
-        timestamp_col.rename("timestamp"), # 1. Time
-        df_features,                       # 2. Sin/Cos Features + Working Day
-        df_price_data,                     # 3. Prices + Spread
+        timestamp_col.rename("timestamp"),          # 1. Time
+        df_features,                                # 2. Sin/Cos Features + Working Day
+        df_price_data,                              # 3. Prices + Spread
         norm_community_net.rename('net_community'), # 4. Community Net Signal
-        df_profiles                        # 5. The 10 Generated Profiles
+        df_profiles                                 # 5. The 10 Generated Profiles
     ], axis=1)
 
     # 6. Save
