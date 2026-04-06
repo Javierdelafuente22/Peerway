@@ -10,8 +10,8 @@ def run_energy_market_simulation(input_file, alpha_file, detailed_transactions, 
     # 1. Identify Agents (Excluding market signals and time features)
     agent_ids = [c for c in df.columns if c not in [
         'timestamp', 'time_year_sin', 'time_year_cos', 
-        'time_day_sin', 'time_day_cos', 'import_price', 
-        'export_price', 'spread'
+        'time_day_sin', 'time_day_cos','is_working_day', 'import_price', 
+        'export_price', 'spread','net_community'
     ]]
     
     # 2. Load Alphas (User preferences)
@@ -108,6 +108,7 @@ def run_energy_market_simulation(input_file, alpha_file, detailed_transactions, 
     for a in agent_ids:
         m = metrics[a]
         vol = m['p2p'] + m['grid']
+        # This is where your code already calculates individual savings
         savings = ((m['p2p_n'] - m['base']) / abs(m['base'])) * 100 if abs(m['base']) > 1e-9 else 0
         report.append({
             'Agent': a, 'Baseline Costs': round(m['base'], 2), 'P2P Costs': round(m['p2p_n'], 2),
@@ -116,6 +117,11 @@ def run_energy_market_simulation(input_file, alpha_file, detailed_transactions, 
         })
 
     final_df = pd.DataFrame(report)
+    
+    target_user = target_agents[0]
+    user_row = final_df[final_df['Agent'] == target_user]
+    user_savings = user_row['Savings %'].values[0] if not user_row.empty else 0
+
     tots = {
         'Agent': 'COMMUNITY TOTAL',
         'Baseline Costs': final_df['Baseline Costs'].sum(), 'P2P Costs': final_df['P2P Costs'].sum(),
@@ -130,7 +136,7 @@ def run_energy_market_simulation(input_file, alpha_file, detailed_transactions, 
     final_df.to_csv(summary_transactions, index=False)
     p2p_fin.to_csv(detailed_transactions, index=False)
     
-    print(f"Community Savings: {tots['Savings %']}% | Peer Trade: {tots['Peer Trade %']}%")
+    print(f"User {target_user} Savings: {user_savings}% | Community Savings: {tots['Savings %']}% | Peer Trade: {tots['Peer Trade %']}%")
 
 if __name__ == "__main__":
     start = time.time()
