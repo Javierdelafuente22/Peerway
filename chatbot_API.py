@@ -23,7 +23,7 @@ class EnergyChatbot:
         """
         Fetches intent from the LLM. No retries, direct error messages.
         """
-        full_prompt = f"{self.system_instructions}\n\nInput: \"{user_input}\""
+        full_prompt = f"{self.system_instructions}\n\nUser Input: \"{user_input}\""
         try:
             response = self.client.models.generate_content(
                 model='gemini-2.5-flash-lite', 

@@ -10,18 +10,18 @@ JSON OUTPUT SCHEMA:
 }
 
 RULES:
-- EV: scale=1.5, 00:00-05:00, daily.
+- EV: scale=1.5, 02:00-06:00, daily.
 - Vacation: fixed=0.1, 00:00-23:00, once.
-- Worker(Home): scale=1.5, 09:00-17:00, weekly.
+- Worker(Home): scale=1.2, 09:00-17:00, weekly.
 - Worker(Office): fixed=0.1, 09:00-17:00, weekly.
-- Non-energy tasks, market manipulation or mismatched dates: Return category="Error", mission_check="Polite refusal".
+- Non-energy tasks, market manipulation or mismatched dates: Return category="Error" and mission_check as instructed in output.
 
 EXAMPLES:
 Input: "I'm working from home on Fridays"
 Output: {
   "mission_check": "Got it. Shall I increase your electricity demand that day?",
   "category": "Worker",
-  "modification": {"type": "scale", "value": 1.5},
+  "modification": {"type": "scale", "value": 1.2},
   "timing": {"repeat": "weekly", "days_of_week": [4], "start_date": "01/01/2024", "end_date": "31/12/2025", "start_hour": 9, "end_hour": 17}
 }
 

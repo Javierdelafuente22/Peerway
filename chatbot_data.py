@@ -2,13 +2,14 @@ import pandas as pd
 import numpy as np
 import os
 import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
 
-def apply_lifestyle_update(json_payload, input_csv="data/demand.csv", output_csv="data/chatbot/demand.csv"):
+def apply_lifestyle_update(json_payload, input_csv="data/demand.csv", output_csv="data/chatbot/updated_demand.csv"):
     """
     Takes the JSON from the chatbot, applies the modifications to the demand time-series,
     and outputs a detailed CSV for verification and graphing.
     """
-    print("\nLoading dataset and applying logic...")
+    print("\nApplying coefficients...")
     
     # 1. Load the data
     try:
@@ -81,69 +82,85 @@ def apply_lifestyle_update(json_payload, input_csv="data/demand.csv", output_csv
 
 def get_plot_window(df, json_payload):
     """
-    Intelligently slices the dataframe to find the best window to plot
-    based on the category of the lifestyle change.
+    Intelligently slices the dataframe to find the best window to plot.
     """
     if not df['is_masked'].any():
-        return df.head(100) # Fallback if no data was modified
+        return df.head(100)
 
     category = json_payload.get('category', '')
-    
-    # Find the very first timestamp where a modification occurred
     first_masked_time = df[df['is_masked']]['timestamp'].iloc[0]
     
     if category == 'Vacation':
-        # Plot the whole vacation + 1 day padding on each side
         start_date = pd.to_datetime(json_payload['timing']['start_date'], dayfirst=True)
         end_date = pd.to_datetime(json_payload['timing']['end_date'], dayfirst=True)
-        plot_start = start_date - pd.Timedelta(days=1)
-        plot_end = end_date + pd.Timedelta(days=1)
         
-    elif category == 'Worker':
-        # Plot a full week (Monday to Sunday) containing the first modified day
-        # .normalize() sets time to 00:00:00
-        plot_start = first_masked_time.normalize() - pd.Timedelta(days=first_masked_time.weekday())
-        plot_end = plot_start + pd.Timedelta(days=6, hours=23, minutes=59)
+        plot_start = start_date.normalize() - pd.Timedelta(days=1)
+        plot_end = end_date.normalize() + pd.Timedelta(days=2)
         
-    else: # Default / EV
-        # Plot 48 hours starting from the morning of the first modified day
+    else: 
+        # EV and Worker use a 24-hour (daily) window
         plot_start = first_masked_time.normalize()
-        plot_end = plot_start + pd.Timedelta(days=2)
+        plot_end = plot_start + pd.Timedelta(days=1)
 
-    # Slice the dataframe to our smart window
-    plot_df = df[(df['timestamp'] >= plot_start) & (df['timestamp'] <= plot_end)]
+    plot_df = df[(df['timestamp'] >= plot_start) & (df['timestamp'] <= plot_end)].copy()
     return plot_df
+
 
 def plot_demand_comparison(plot_df, category):
     """
     Creates a clean, readable line chart comparing pre and post demand.
     """
-    print("\nGenerating comparison graph...")
+    print("Generating comparison graph...")
     
     plt.figure(figsize=(10, 5))
     
-    # Plot Original Demand (Grey, slightly transparent)
-    plt.plot(plot_df['timestamp'], plot_df['pre_demand'], 
-             label='Original Demand', color='grey', alpha=0.5, linestyle='--')
-    
-    # Plot New Demand (Blue, bold)
+    # 1. Plot the continuous New Demand (Blue) everywhere
     plt.plot(plot_df['timestamp'], plot_df['post_demand'], 
              label='Updated Demand', color='#1f77b4', linewidth=2)
     
-    # Highlight the area between the lines to show the delta
-    plt.fill_between(plot_df['timestamp'], plot_df['pre_demand'], plot_df['post_demand'], 
-                     where=(plot_df['post_demand'] != plot_df['pre_demand']),
-                     color='orange', alpha=0.3, label='Net Change')
+    # Create the "Visual Bridge" mask
+    visual_mask = (
+        plot_df['is_masked'] | 
+        plot_df['is_masked'].shift(1).fillna(False) | 
+        plot_df['is_masked'].shift(-1).fillna(False)
+    )
+    
+    # 2. Mask the Original Demand so it ONLY shows during the change
+    original_masked = plot_df['pre_demand'].where(visual_mask, np.nan)
+    
+    # Plot Original Demand "Ghost" Line (Grey, Dashed)
+    plt.plot(plot_df['timestamp'], original_masked, 
+             label='Original Demand', color="#9E9E9E", linewidth=2, linestyle='--')
+    
+    # 3. Highlight the area between the lines to show the delta
+    plt.fill_between(plot_df['timestamp'], 
+                     plot_df['pre_demand'], 
+                     plot_df['post_demand'], 
+                     where=visual_mask,
+                     interpolate=True, # Interpolate ensures diagonals are filled smoothly
+                     color='orange', alpha=0.2, label='Net Change')
 
-    plt.title(f"Energy Demand Shift: {category} Profile", fontsize=14)
-    plt.xlabel("Time", fontsize=12)
-    plt.ylabel("Normalized Demand (0-1)", fontsize=12)
-    plt.ylim(0, 1.05) # Keep Y-axis fixed so changes are visually relative
+    plt.title(f"User Electricity Consumption: {category} Profile", fontsize=14)
+    
+    # Dynamic X-Axis Formatting
+    ax = plt.gca()
+    if category == 'Vacation':
+        ax.xaxis.set_major_formatter(mdates.DateFormatter('%d/%m/%Y'))
+        plt.xlabel("Date (DD/MM/YYYY)", fontsize=12)
+    else:
+        ax.xaxis.set_major_formatter(mdates.DateFormatter('%H:00')) 
+        plt.xlabel("Time of Day (HH:MM)", fontsize=12)
+        
+    plt.xticks(rotation=30)
+    plt.ylabel("Normalized Demand (kWh)", fontsize=12)
+    plt.ylim(0, 1.05)
     plt.grid(True, alpha=0.3)
-    plt.legend()
+    
+    # Legend in the top right corner
+    plt.legend(loc='upper right')
+    
     plt.tight_layout()
     
-    # For now, we just show it. Later, you can pass this to your UI framework.
     plt.show()
 
 # --- Local Testing Block ---
@@ -165,6 +182,16 @@ if __name__ == "__main__":
     
     # Ensure you have a 'data/demand.csv' file before running this!
     test_run = apply_lifestyle_update(mock_payload)
+                # 1. Update the Data
+    modified_df = apply_lifestyle_update(json_payload=mock_payload)
+            
+    if modified_df is not None:
+                # 2. Extract the specific window to plot
+        plot_data = get_plot_window(modified_df, mock_payload)
+                
+                # 3. Show the graph!
+        plot_demand_comparison(plot_data, mock_payload['category'])
+    
     if test_run is not None:
         print("\nPreview of modified rows:")
         print(test_run[test_run['is_masked'] == True].head())

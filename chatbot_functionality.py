@@ -6,7 +6,9 @@ def main():
     # Initialize the class from our API file
     agent = EnergyChatbot()
 
+    print("\n" + "="*50)
     print("Chat to your Energy Agent")
+    print("="*50 + "\n")
 
     while True:
         user_text = input()
