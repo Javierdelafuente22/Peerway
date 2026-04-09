@@ -16,30 +16,41 @@ class EnergyChatbot:
         
         self.client = genai.Client(api_key=api_key)
         
+        # Change your model here (e.g., 'gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-2.0-flash-lite')
+        self.model_name = 'gemini-2.5-flash-lite' 
+        
         with open(prompt_path, "r", encoding="utf-8") as f:
             self.system_instructions = f.read()
 
-    def get_chat_response(self, user_input):
+    def get_chat_response(self, user_input=None, audio_path=None):
         """
-        Fetches intent from the LLM. No retries, direct error messages.
+        Fetches intent from the LLM, accepting either text or an audio file.
         """
-        full_prompt = f"{self.system_instructions}\n\nUser Input: \"{user_input}\""
         try:
+            contents = [self.system_instructions]
+            
+            if audio_path:
+                # Upload with explicit mime_type for stability
+                audio_file = self.client.files.upload(
+                    file=audio_path,
+                    config={'mime_type': 'audio/wav'}
+                )
+                
+                contents.append("Input Audio:")
+                contents.append(audio_file)
+            elif user_input:
+                contents.append(f"Input Text: \"{user_input}\"")
+            else:
+                return {"category": "Error", "mission_check": "No input provided."}
+
             response = self.client.models.generate_content(
-                model='gemini-2.5-flash-lite', 
-                contents=full_prompt
+                model=self.model_name, 
+                contents=contents
             )
+            
             clean_text = response.text.replace('```json', '').replace('```', '').strip()
             return json.loads(clean_text)
             
         except Exception as e:
-            error_msg = str(e).lower()
-            # Map Gemini specific codes to user-friendly explanations
-            if "429" in error_msg:
-                msg = "Too many requests have been sent. Please retry in a few minutes."
-            elif "503" in error_msg or "unavailable" in error_msg:
-                msg = "Servers are busy, try again in a few minutes. Sorry for the inconvenience."
-            else:
-                msg = "An issue has been encountered. Please retry in a few minutes."
-            
-            return {"category": "Error", "mission_check": msg}
+            print(f"\n[DEBUG] Full Error: {e}")
+            return {"category": "Error", "mission_check": "Technical error during processing."}

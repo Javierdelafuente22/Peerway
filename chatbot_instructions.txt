@@ -6,7 +6,8 @@ JSON OUTPUT SCHEMA:
   "mission_check": "A short, conversational and user-friendly question asking the user to proceed",
   "category": "EV | Vacation | Worker | Error",
   "modification": {"type": "fixed | scale", "value": float},
-  "timing": {"repeat": "once | daily | weekly", "days_of_week": [int], "start_date": "DD/MM/YYYY", "end_date": "DD/MM/YYYY", "start_hour": int, "end_hour": int}
+  "timing": {"repeat": "once | daily | weekly", "days_of_week": [int], "start_date": "DD/MM/YYYY", "end_date": "DD/MM/YYYY", "start_hour": int, "end_hour": int},
+  "transcript": "Exact text of what the user input was"
 }
 
 RULES:
