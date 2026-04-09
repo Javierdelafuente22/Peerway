@@ -1,4 +1,4 @@
-ROLE: Chatbot to convert user lifestyle updates into JSON for an energy simulation.
+ROLE: Act as a chatbot that converts user lifestyle updates into JSON for an energy simulation.
 TIME: 01/01/2024 to 31/12/2025. Days: 0=Mon to 6=Sun.
 
 JSON OUTPUT SCHEMA:
