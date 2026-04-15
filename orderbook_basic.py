@@ -2,11 +2,9 @@ import pandas as pd
 import numpy as np
 import time
 
-# Import your trading strategies
-from trading_algorithms.heuristic_alg_v1 import Heuristic_v1
-
-def run_energy_market_simulation(input_file, alpha_file, detailed_transactions, summary_transactions, target_agents, battery_class):
+def run_energy_market_simulation_no_battery(input_file, alpha_file, detailed_transactions, summary_transactions, target_agents):
     df = pd.read_csv(input_file)
+    
     # 1. Identify Agents (Excluding market signals and time features)
     agent_ids = [c for c in df.columns if c not in [
         'timestamp', 'time_year_sin', 'time_year_cos', 
@@ -22,37 +20,19 @@ def run_energy_market_simulation(input_file, alpha_file, detailed_transactions, 
     p2p_fin = df.copy()
     for a in agent_ids: p2p_fin[a] = 0.0
     
-    # Initialize battery objects
-    batteries = {u: battery_class() for u in target_agents if u in agent_ids}
-    
-    for u in batteries.keys():
-        p2p_fin[f'{u}_Raw'] = 0.0
-        p2p_fin[f'{u}_SoC'] = 0.0
-        p2p_fin[f'{u}_Final'] = 0.0
-
     metrics = {a: {'p2p': 0.0, 'grid': 0.0, 'base': 0.0, 'p2p_n': 0.0} for a in agent_ids}
     counts = {'Shortage': 0, 'Surplus': 0, 'Balance': 0}
 
     # 4. Simulation Loop
     for idx, row in df.iterrows():
         tou, fit = row['import_price'], row['export_price']
-        spread = row.get('spread', 0)
         
-        # Calculate Baseline (What would have happened without P2P/Batteries)
+        # Calculate Baseline (What happens without P2P)
         for a in agent_ids:
             metrics[a]['base'] += (-row[a] * tou) if row[a] > 0 else (abs(row[a]) * fit)
 
-        # 5. Execute Agent Strategies
-        # We now pass only market data. The agent handles its own memory/thresholds.
-        for u, batt in batteries.items():
-            p2p_fin.at[idx, f'{u}_Raw'] = row[u]
-            
-            # The signature is now agnostic: (net_demand, buy_price, sell_price, spread)
-            row[u], p2p_fin.at[idx, f'{u}_SoC'] = batt.optimize_demand(row[u], tou, fit, spread)
-            
-            p2p_fin.at[idx, f'{u}_Final'] = row[u]
-
-        # 6. Market Clearing (The Orderbook Engine)
+        # 5. Market Clearing (The Orderbook Engine)
+        # Using raw net demand directly since there are no batteries modifying it
         net = sum(row[a] for a in agent_ids)
         state = 'Shortage' if net > 1e-9 else ('Surplus' if net < -1e-9 else 'Balance')
         counts[state] += 1
@@ -73,8 +53,6 @@ def run_energy_market_simulation(input_file, alpha_file, detailed_transactions, 
             while b_i < len(buys) and s_i < len(sells):
                 b_id, s_id = buys[b_i][0], sells[s_i][0]
                 t_qty = min(buys[b_i][1], sells[s_i][1])
-                # Do not erase: Mid-point clearing price weighted by user alpha
-                # Do not erase: pr = fit + ((buys[b_i][2] + sells[s_i][2])/2) * (tou - fit)
 
                 # Temporary shortcut: all alphas at 0.5
                 pr = fit + 0.5 * (tou - fit)
@@ -103,12 +81,11 @@ def run_energy_market_simulation(input_file, alpha_file, detailed_transactions, 
                 metrics[a]['p2p_n'] += rev
                 metrics[a]['grid'] += qty
 
-    # 7. Reporting Logic
+    # 6. Reporting Logic
     report = []
     for a in agent_ids:
         m = metrics[a]
         vol = m['p2p'] + m['grid']
-        # This is where your code already calculates individual savings
         savings = ((m['p2p_n'] - m['base']) / abs(m['base'])) * 100 if abs(m['base']) > 1e-9 else 0
         report.append({
             'Agent': a, 'Baseline Costs': round(m['base'], 2), 'P2P Costs': round(m['p2p_n'], 2),
@@ -140,12 +117,12 @@ def run_energy_market_simulation(input_file, alpha_file, detailed_transactions, 
 
 if __name__ == "__main__":
     start = time.time()
-    run_energy_market_simulation(
-        input_file='data/orderbook.csv', 
+    run_energy_market_simulation_no_battery(
+        # input_file='data/orderbook.csv', 
+        
         alpha_file='data/alphas.csv', 
-        detailed_transactions='orderbook_results/detailed_transactions.csv', 
-        summary_transactions='orderbook_results/summary_transactions.csv',
-        target_agents=['1_Prosumer'],
-        battery_class=Heuristic_v1
+        detailed_transactions='orderbook_results/detailed_transactions_nobatt.csv', 
+        summary_transactions='orderbook_results/summary_transactions_nobatt.csv',
+        target_agents=['1_Prosumer']
     )
     print(f"Runtime: {time.time() - start:.4f}s")

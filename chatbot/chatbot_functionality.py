@@ -5,8 +5,8 @@ import numpy as np
 import sounddevice as sd
 import scipy.io.wavfile as wav
 
-from chatbot_API import EnergyChatbot
-from chatbot_data import apply_lifestyle_update, get_plot_window, plot_demand_comparison
+from chatbot.chatbot_API import EnergyChatbot
+from chatbot.chatbot_data import apply_lifestyle_update, get_plot_window, plot_demand_comparison
 
 def record_audio(filename="last_recording.wav", fs=44100):
     """
@@ -68,7 +68,7 @@ def main():
             
         elif input_mode == "audio":
             # [UI BUTTON REPLACEMENT: Start/Stop Recording]
-            audio_file = record_audio(filename="last_recording.wav")
+            audio_file = record_audio(filename="chatbot/last_recording.wav")
             print("Processing audio with Gemini...")
             
             result = agent.get_chat_response(audio_path=audio_file)

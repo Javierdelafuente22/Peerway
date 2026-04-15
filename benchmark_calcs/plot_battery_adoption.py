@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import time
 
 # Import your trading strategy
-from trading_algorithms.heuristic_alg_v1 import Heuristic_v1
+from trading_algorithms.Heuristic.heuristic import Heuristic_v1
 
 def run_single_simulation(input_file, alpha_file, target_agents, battery_class):
     """
