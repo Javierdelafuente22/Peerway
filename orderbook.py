@@ -76,7 +76,7 @@ def run_energy_market_simulation(input_file, alpha_file, detailed_transactions, 
                 # Do not erase: Mid-point clearing price weighted by user alpha
                 # Do not erase: pr = fit + ((buys[b_i][2] + sells[s_i][2])/2) * (tou - fit)
 
-                # Temporary shportcut: all alphas at 0.5
+                # Temporary shortcut: all alphas at 0.5
                 pr = fit + 0.5 * (tou - fit)
                 
                 p2p_fin.at[idx, b_id] -= t_qty * pr
