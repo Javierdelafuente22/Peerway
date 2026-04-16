@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 class EnergyChatbot:
-    def __init__(self, prompt_path="chatbot_instructions.txt"):
+    def __init__(self, prompt_path="chatbot/chatbot_instructions.txt"):
         """
         Sets up the API client and loads the static instructions.
         """

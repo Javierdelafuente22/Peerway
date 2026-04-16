@@ -16,17 +16,16 @@ import numpy as np
 import pandas as pd
 
 from rl_env.battery import Battery
-from rl_env.rl_orderbook_simp import clear_market_for_agent, compute_baseline_cost
+from rl_env.rl_orderbook_simp import clear_market_for_agent
 
 
 # ---------- Action mapping ----------
 # Maps discrete action index to desired charge/discharge power
+# Simplified 3-action space for first training run
 ACTION_MAP = {
     0:  0.0,    # Do nothing
     1:  0.4,    # Charge full rate
-    2:  0.2,    # Charge half rate
-    3: -0.2,    # Discharge half rate
-    4: -0.4,    # Discharge full rate
+    2: -0.4,    # Discharge full rate
 }
 
 # ---------- State feature columns (from dataset) ----------
@@ -51,7 +50,7 @@ class P2PEnergyTradingEnv(gym.Env):
         """
         Args:
             df:             DataFrame with full dataset (already filtered to train or test).
-            reward_scale:   Multiplier for reward signal (advisor tip: ~1.0 magnitude).
+            reward_scale:   Multiplier for reward signal.
             episode_length: Steps per episode (24 = 1 day).
         """
         super().__init__()
@@ -129,25 +128,48 @@ class P2PEnergyTradingEnv(gym.Env):
         demand_delta, new_soc = self.battery.apply_action(action_power)
         modified_demand = raw_demand + demand_delta
         
-        # 3. Clear market with modified demand
+        # 3. Clear market TWICE for reward computation:
+        #    (a) WITHOUT battery action -- counterfactual "what would have happened"
+        #    (b) WITH battery action    -- what actually happened
+        # The reward is the difference, isolating ONLY the battery's contribution.
+        # Both clearings use the same P2P market, so exogenous P2P effects cancel out.
+        cost_no_battery, _, _ = clear_market_for_agent(
+            raw_demand, others, import_price, export_price
+        )
         actual_cost, p2p_vol, grid_vol = clear_market_for_agent(
             modified_demand, others, import_price, export_price
         )
         
-        # 4. Compute baseline (no battery, no P2P, pure grid)
-        baseline_cost = compute_baseline_cost(raw_demand, import_price, export_price)
-        
-        # 5. Reward = savings vs baseline, scaled for PPO stability
-        raw_reward = baseline_cost - actual_cost
+        # 4. Reward = pure battery contribution this step
+        # Positive when the battery action reduced cost vs doing nothing.
+        # Negative when the battery action increased cost (e.g., charging when expensive).
+        # This removes all exogenous noise from demand/price/community variation.
+        raw_reward = cost_no_battery - actual_cost
         reward = float(raw_reward * self.reward_scale)
         
         # 6. Advance step
         self.current_step += 1
-        terminated = self.current_step >= self.episode_length
-        truncated = False
+        # Episode ends due to TIME LIMIT (day ended), not task completion.
+        # Under Gymnasium API: time limits are `truncated`, goal-reached is `terminated`.
+        # This distinction is critical for PPO: `terminated=True` tells SB3 the terminal
+        # value is 0 (no bootstrap), which destroys GAE advantage estimation for episodic
+        # daily tasks. `truncated=True` correctly tells SB3 to bootstrap the value.
+        terminated = False
+        truncated = self.current_step >= self.episode_length
         
         # 7. Build next observation
-        obs = self._get_observation() if not terminated else np.zeros(11, dtype=np.float32)
+        # On truncation (day ended), we return the last valid observation of the day
+        # (current step's observation, before advancing). SB3's DummyVecEnv will store
+        # this in info['terminal_observation'] for value bootstrapping before reset.
+        done = terminated or truncated
+        if done:
+            # Use the current (final) step's observation for bootstrapping
+            obs = np.zeros(11, dtype=np.float32)
+            obs[0] = raw_demand
+            obs[1] = new_soc
+            obs[2:11] = self.market_features[global_idx]
+        else:
+            obs = self._get_observation()
         
         # 8. Info dict for logging/reporting
         info = {
@@ -155,7 +177,7 @@ class P2PEnergyTradingEnv(gym.Env):
             'modified_demand': modified_demand,
             'soc': new_soc,
             'actual_cost': actual_cost,
-            'baseline_cost': baseline_cost,
+            'cost_no_battery': cost_no_battery,
             'raw_reward': raw_reward,
             'p2p_volume': p2p_vol,
             'grid_volume': grid_vol,

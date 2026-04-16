@@ -118,8 +118,7 @@ def run_energy_market_simulation_no_battery(input_file, alpha_file, detailed_tra
 if __name__ == "__main__":
     start = time.time()
     run_energy_market_simulation_no_battery(
-        # input_file='data/orderbook.csv', 
-        
+        input_file='data/orderbook.csv', 
         alpha_file='data/alphas.csv', 
         detailed_transactions='orderbook_results/detailed_transactions_nobatt.csv', 
         summary_transactions='orderbook_results/summary_transactions_nobatt.csv',

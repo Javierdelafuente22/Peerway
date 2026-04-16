@@ -5,8 +5,8 @@ import numpy as np
 import sounddevice as sd
 import scipy.io.wavfile as wav
 
-from chatbot.chatbot_API import EnergyChatbot
-from chatbot.chatbot_data import apply_lifestyle_update, get_plot_window, plot_demand_comparison
+from chatbot_API import EnergyChatbot
+from chatbot_data import apply_lifestyle_update, get_plot_window, plot_demand_comparison
 
 def record_audio(filename="last_recording.wav", fs=44100):
     """

@@ -104,26 +104,31 @@ def generate_modified_csv(df, policy_fn, output_csv, episode_length=24):
 
 
 def run_evaluation_pipeline(df, policy_fn, output_dir, policy_name="policy",
-                            alpha_file='data/alphas.csv', episode_length=24):
+                            alpha_file='data/alphas.csv', episode_length=24,
+                            keep_intermediate=False):
     """
     Full evaluation pipeline:
         1. Generate modified CSV from policy
         2. Run orderbook_basic.py on it for exact KPIs
+        3. Optionally clean up intermediate files
     
     Args:
-        df:             DataFrame (test set).
-        policy_fn:      Function: observation (np.array) -> action (int).
-        output_dir:     Directory to save results.
-        policy_name:    Label for this policy (used in filenames).
-        alpha_file:     Path to alphas CSV.
-        episode_length: Steps per episode.
+        df:                DataFrame (test set).
+        policy_fn:         Function: observation (np.array) -> action (int).
+        output_dir:        Directory to save results.
+        policy_name:       Label for this policy (used in filenames).
+        alpha_file:        Path to alphas CSV.
+        episode_length:    Steps per episode.
+        keep_intermediate: If False, delete the modified CSV and detailed
+                           transactions CSV after KPIs are computed. Only the
+                           summary file is kept (the one with the KPIs).
     
     Returns:
         modified_df: DataFrame with battery actions applied.
     """
     os.makedirs(output_dir, exist_ok=True)
     
-    # Step 1: Generate modified CSV
+    # Step 1: Generate modified CSV (intermediate)
     modified_csv = os.path.join(output_dir, f'orderbook_modified_{policy_name}.csv')
     modified_df, soc_log = generate_modified_csv(df, policy_fn, modified_csv, episode_length)
     
@@ -132,13 +137,25 @@ def run_evaluation_pipeline(df, policy_fn, output_dir, policy_name="policy",
     
     from orderbook_basic import run_energy_market_simulation_no_battery
     
+    detailed_csv = os.path.join(output_dir, f'detailed_{policy_name}.csv')
+    summary_csv = os.path.join(output_dir, f'summary_{policy_name}.csv')
+    
     run_energy_market_simulation_no_battery(
         input_file=modified_csv,
         alpha_file=alpha_file,
-        detailed_transactions=os.path.join(output_dir, f'detailed_{policy_name}.csv'),
-        summary_transactions=os.path.join(output_dir, f'summary_{policy_name}.csv'),
+        detailed_transactions=detailed_csv,
+        summary_transactions=summary_csv,
         target_agents=[TARGET_AGENT]
     )
+    
+    # Step 3: Clean up intermediate files
+    # Keep: summary_*.csv and detailed_*.csv
+    # Delete: orderbook_modified_*.csv (intermediate, not needed after clearing)
+    if not keep_intermediate:
+        if os.path.exists(modified_csv):
+            os.remove(modified_csv)
+        print(f"  Kept: {summary_csv}")
+        print(f"  Kept: {detailed_csv}")
     
     return modified_df
 
