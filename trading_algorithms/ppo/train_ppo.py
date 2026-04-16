@@ -32,7 +32,7 @@ from stable_baselines3.common.callbacks import BaseCallback
 from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.vec_env import DummyVecEnv, VecNormalize
 
-from rl_env.p2p_energy_env import P2PEnergyTradingEnv, ACTION_MAP
+from rl_env.p2p_energy_env import P2PEnergyTradingEnv, MAX_RATE
 from utils.data_loader import load_and_split, print_split_info
 from utils.evaluation import run_evaluation_pipeline
 
@@ -198,30 +198,47 @@ def train(args):
     
     print(f"  Train env: {split_info['train_days']} episodes (days)")
     print(f"  Test env:  {split_info['test_days']} episodes (days)")
-    print(f"  Action space size: {len(ACTION_MAP)} (actions: {list(ACTION_MAP.values())})")
+    print(f"  Action space: continuous [-1, 1], scaled to battery power [-{MAX_RATE}, {MAX_RATE}]")
     print(f"  VecNormalize: observations normalised with running mean/std")
     
     # ---------- [3/4] Train PPO ----------
     print(f"\n[3/4] Training PPO for {args.timesteps:,} timesteps...")
-    print(f"  Learning rate:  LINEAR schedule {args.lr} -> 0")
+    print(f"  Learning rate:  CONSTANT {args.lr} (no decay)")
     print(f"  Entropy coef:   {args.ent_coef}")
     print(f"  Gamma:          {args.gamma}")
+    print(f"  Network arch:   [256, 256]")
+    print(f"  Initial log_std: {args.log_std_init} (std = {np.exp(args.log_std_init):.3f})")
     
     model = PPO(
         "MlpPolicy",
         train_env,
-        learning_rate=linear_schedule(args.lr),  # Linear decay
+        # Constant LR (no linear decay). Prior run decayed to 1e-7 and froze the
+        # policy before it could learn; constant LR keeps updates meaningful throughout.
+        learning_rate=args.lr,
         n_steps=2048,
-        batch_size=64,
+        # batch_size=256 (was 64) -> 8 minibatches per update instead of 32.
+        # Fewer gradient steps per rollout reduces overfitting to each batch of data.
+        batch_size=256,
         n_epochs=10,
         gamma=args.gamma,
         gae_lambda=0.95,
         clip_range=0.2,
+        # Higher entropy coef (was 0.01) keeps the policy exploring longer.
+        # Prior run's policy collapsed to near-deterministic too fast.
         ent_coef=args.ent_coef,
-        verbose=1,  # Print training stats: explained_variance, KL, clip_fraction, entropy
+        max_grad_norm=0.5,  # Explicit (SB3 default). Prevents large gradient spikes.
+        verbose=1,
         tensorboard_log=args.log_dir,
         seed=args.seed,
         device='cpu',
+        policy_kwargs=dict(
+            # log_std_init=0 means initial action noise std = exp(0) = 1.0.
+            # (Was -1.0 -> std ~0.37). More aggressive exploration at start.
+            log_std_init=args.log_std_init,
+            # Bigger network: [256, 256] instead of default [64, 64].
+            # More capacity to represent complex charge/discharge policies.
+            net_arch=dict(pi=[256, 256], vf=[256, 256]),
+        ),
     )
     
     # Sync eval env's normalization stats with train env's
@@ -280,7 +297,8 @@ def train(args):
     def trained_policy(obs):
         norm_obs = normalize_obs(obs)
         action, _ = model.predict(norm_obs, deterministic=True)
-        return int(action)
+        # Continuous action is a 1D array; return as scalar
+        return float(np.asarray(action).flatten()[0])
     
     run_evaluation_pipeline(
         df_test, trained_policy,
@@ -312,10 +330,12 @@ if __name__ == "__main__":
     parser.add_argument("--timesteps", type=int, default=1_000_000,
                         help="Total training timesteps (Tier 1 default: 1M)")
     parser.add_argument("--lr", type=float, default=3e-4,
-                        help="Initial learning rate (decays linearly to 0)")
+                        help="Constant learning rate (no decay)")
     parser.add_argument("--reward_scale", type=float, default=10.0)
-    parser.add_argument("--ent_coef", type=float, default=0.01,
-                        help="Entropy bonus (higher = more exploration)")
+    parser.add_argument("--ent_coef", type=float, default=0.05,
+                        help="Entropy bonus (higher = more exploration; was 0.01, now 0.05)")
+    parser.add_argument("--log_std_init", type=float, default=-1.0,
+                        help="Initial log-std for action noise (-1.0 -> std~0.37, moderate exploration)")
     parser.add_argument("--gamma", type=float, default=0.99,
                         help="Discount factor")
     parser.add_argument("--eval_freq", type=int, default=10_000)

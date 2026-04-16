@@ -141,7 +141,7 @@ def run_energy_market_simulation(input_file, alpha_file, detailed_transactions, 
 if __name__ == "__main__":
     start = time.time()
     run_energy_market_simulation(
-        input_file='data/orderbook.csv', 
+        input_file='data/test_set.csv', 
         alpha_file='data/alphas.csv', 
         detailed_transactions='orderbook_results/detailed_transactions.csv', 
         summary_transactions='orderbook_results/summary_transactions.csv',

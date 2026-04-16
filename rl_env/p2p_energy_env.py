@@ -6,8 +6,9 @@ to minimise energy costs through a combination of P2P trading and grid arbitrage
 
 Episode: 1 day (24 hourly steps), SoC resets to 0 at start.
 State:   11 continuous features (demand, SoC, prices, time, community).
-Actions: 5 discrete (do nothing, charge half/full, discharge half/full).
-Reward:  Scaled cost savings vs grid-only baseline.
+Actions: continuous [-1, 1] representing fraction of max battery power.
+         -1 = full discharge, 0 = do nothing, +1 = full charge.
+Reward:  Scaled battery contribution (pure agent effect per step).
 """
 
 import gymnasium as gym
@@ -19,14 +20,11 @@ from rl_env.battery import Battery
 from rl_env.rl_orderbook_simp import clear_market_for_agent
 
 
-# ---------- Action mapping ----------
-# Maps discrete action index to desired charge/discharge power
-# Simplified 3-action space for first training run
-ACTION_MAP = {
-    0:  0.0,    # Do nothing
-    1:  0.4,    # Charge full rate
-    2: -0.4,    # Discharge full rate
-}
+# ---------- Battery power scaling ----------
+# Continuous action in [-1, 1] maps linearly to battery power in [-MAX_RATE, MAX_RATE].
+# action_power = action * MAX_RATE
+# Must match the Battery's max_rate parameter (0.4 by default).
+MAX_RATE = 0.4
 
 # ---------- State feature columns (from dataset) ----------
 MARKET_FEATURES = [
@@ -77,8 +75,18 @@ class P2PEnergyTradingEnv(gym.Env):
         # Battery
         self.battery = Battery(capacity=1.0, max_rate=0.4, efficiency=0.95, initial_soc=0.0)
         
-        # Action space: 5 discrete actions
-        self.action_space = spaces.Discrete(len(ACTION_MAP))
+        # Action space: continuous in [-1, 1] representing battery power fraction
+        # action = -1  ->  discharge at MAX_RATE (full discharge)
+        # action =  0  ->  do nothing
+        # action = +1  ->  charge at MAX_RATE (full charge)
+        # Partial values give proportional charge/discharge rates.
+        # This continuous space allows nuanced decisions (e.g., charge at 0.6 of max),
+        # which discrete action spaces cannot express.
+        self.action_space = spaces.Box(
+            low=-1.0, high=1.0,
+            shape=(1,),
+            dtype=np.float32
+        )
         
         # Observation space: 11 continuous features
         # [net_demand, soc, import_price, export_price, spread, net_community,
@@ -124,7 +132,11 @@ class P2PEnergyTradingEnv(gym.Env):
         others = self.others_demands[global_idx]
         
         # 2. Apply battery action
-        action_power = ACTION_MAP[action]
+        # Action is a continuous value in [-1, 1] (passed as a length-1 array).
+        # Scale to actual battery power: action_power = action * MAX_RATE.
+        # Battery will further clip by physical constraints (SoC bounds, max_rate).
+        action_scalar = float(np.clip(np.asarray(action).flatten()[0], -1.0, 1.0))
+        action_power = action_scalar * MAX_RATE
         demand_delta, new_soc = self.battery.apply_action(action_power)
         modified_demand = raw_demand + demand_delta
         
@@ -183,7 +195,7 @@ class P2PEnergyTradingEnv(gym.Env):
             'grid_volume': grid_vol,
             'import_price': import_price,
             'export_price': export_price,
-            'action': action,
+            'action': action_scalar,
             'action_power': action_power,
             'demand_delta': demand_delta,
         }

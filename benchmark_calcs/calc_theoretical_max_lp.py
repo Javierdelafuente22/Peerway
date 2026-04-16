@@ -3,7 +3,7 @@ import numpy as np
 import pulp
 
 def lp_benchmarks():
-    df = pd.read_csv('data/orderbook.csv')
+    df = pd.read_csv('data/test_set.csv')
     
     agent_ids = [c for c in df.columns if c not in [
         'timestamp', 'time_year_sin', 'time_year_cos', 'is_working_day', 

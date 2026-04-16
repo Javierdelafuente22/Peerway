@@ -15,7 +15,7 @@ import pandas as pd
 import os
 
 from rl_env.battery import Battery
-from rl_env.p2p_energy_env import ACTION_MAP
+from rl_env.p2p_energy_env import MAX_RATE
 
 TARGET_AGENT = '1_Prosumer'
 MARKET_FEATURES = [
@@ -53,7 +53,7 @@ def generate_modified_csv(df, policy_fn, output_csv, episode_length=24):
     # Add columns for tracking (kept in modified_df but NOT in the saved CSV)
     modified_df[f'{TARGET_AGENT}_Raw'] = modified_df[TARGET_AGENT].copy()
     modified_df[f'{TARGET_AGENT}_SoC'] = 0.0
-    modified_df[f'{TARGET_AGENT}_Action'] = 0
+    modified_df[f'{TARGET_AGENT}_Action'] = 0.0
     
     battery = Battery(capacity=1.0, max_rate=0.4, efficiency=0.95, initial_soc=0.0)
     soc_log = []
@@ -75,9 +75,10 @@ def generate_modified_csv(df, policy_fn, output_csv, episode_length=24):
             obs[1] = battery.soc
             obs[2:11] = np.array([float(row[f]) for f in MARKET_FEATURES], dtype=np.float32)
             
-            # Get action from policy
+            # Get action from policy (continuous scalar in [-1, 1])
             action = policy_fn(obs)
-            action_power = ACTION_MAP[action]
+            action_scalar = float(np.clip(np.asarray(action).flatten()[0], -1.0, 1.0))
+            action_power = action_scalar * MAX_RATE
             
             # Apply battery
             demand_delta, new_soc = battery.apply_action(action_power)
@@ -86,7 +87,7 @@ def generate_modified_csv(df, policy_fn, output_csv, episode_length=24):
             # Write modified demand into the dataframe
             modified_df.at[idx, TARGET_AGENT] = modified_demand
             modified_df.at[idx, f'{TARGET_AGENT}_SoC'] = new_soc
-            modified_df.at[idx, f'{TARGET_AGENT}_Action'] = action
+            modified_df.at[idx, f'{TARGET_AGENT}_Action'] = action_scalar
             
             soc_log.append(new_soc)
     
@@ -163,10 +164,10 @@ def run_evaluation_pipeline(df, policy_fn, output_dir, policy_name="policy",
 # ---------- Policy wrappers ----------
 
 def no_battery_policy(obs):
-    """Baseline: always do nothing (action 0)."""
-    return 0
+    """Baseline: always do nothing (continuous action = 0.0)."""
+    return 0.0
 
 
 def random_policy(obs):
-    """Random: pick a random action each step."""
-    return np.random.randint(0, len(ACTION_MAP))
+    """Random: pick a random continuous action in [-1, 1]."""
+    return np.random.uniform(-1.0, 1.0)
