@@ -25,7 +25,6 @@ from typing import Callable
 
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
 
 from stable_baselines3 import PPO
 from stable_baselines3.common.callbacks import BaseCallback
@@ -57,30 +56,49 @@ def linear_schedule(initial_value: float) -> Callable[[float], float]:
 # ============================================================
 class RewardTrackingCallback(BaseCallback):
     """
-    Periodically evaluates the policy on the test env and records mean reward.
-    Also tracks training reward (from Monitor-wrapped train env).
+    Tracks training and eval episode rewards for plotting.
     
-    IMPORTANT: The eval env must have the SAME VecNormalize stats as the train env,
-    otherwise the policy sees differently-scaled inputs. We handle this by passing
-    a normalized eval env that shares stats with the training env.
+    - Training: logs every Nth completed episode's reward.
+    - Eval: logs the MEAN of eval episodes at each checkpoint (one point per checkpoint).
+    - Inserts a (0, 0) starting point so plots begin at zero.
     """
     
-    def __init__(self, eval_env, eval_freq=10_000, n_eval_episodes=10, verbose=1):
+    def __init__(self, eval_env, eval_freq=10_000, n_eval_episodes=10,
+                 episode_log_freq=1000, verbose=1):
         super().__init__(verbose)
         self.eval_env = eval_env
         self.eval_freq = eval_freq
         self.n_eval_episodes = n_eval_episodes
-        self.timesteps = []
-        self.eval_rewards = []
-        self.train_rewards = []
+        self.episode_log_freq = episode_log_freq
+        self.episode_log = []
+        self._total_train_episodes = 0
         self.best_reward = -np.inf
+        # Insert starting point at zero so plots begin from origin
+        self.episode_log.append({
+            'timestep': 0, 'episode': 0, 'reward': 0.0, 'source': 'train',
+        })
+        self.episode_log.append({
+            'timestep': 0, 'episode': 0, 'reward': 0.0, 'source': 'eval',
+        })
         
     def _on_step(self):
+        # --- Detect training episode completion via Monitor wrapper ---
+        infos = self.locals.get('infos', [])
+        for info in infos:
+            if 'episode' in info:
+                self._total_train_episodes += 1
+                ep_reward = float(info['episode']['r'])
+                
+                if self._total_train_episodes % self.episode_log_freq == 0:
+                    self.episode_log.append({
+                        'timestep': self.num_timesteps,
+                        'episode': self._total_train_episodes,
+                        'reward': ep_reward,
+                        'source': 'train',
+                    })
+        
+        # --- Periodic eval on test set ---
         if self.n_calls % self.eval_freq == 0:
-            # Test set evaluation (deterministic policy)
-            # IMPORTANT: eval_env is VecNormalize-wrapped with norm_reward=True.
-            # We use get_original_reward() to get the raw (unnormalised) reward,
-            # so it's on the same scale as the training reward from ep_info_buffer.
             rewards = []
             for _ in range(self.n_eval_episodes):
                 obs = self.eval_env.reset()
@@ -89,59 +107,32 @@ class RewardTrackingCallback(BaseCallback):
                 while not done:
                     action, _ = self.model.predict(obs, deterministic=True)
                     obs, reward, dones, info = self.eval_env.step(action)
-                    # Use unnormalised reward for consistent comparison with training
                     raw_reward = self.eval_env.get_original_reward()[0]
                     episode_reward += float(raw_reward)
                     done = bool(dones[0])
                 rewards.append(episode_reward)
             
+            # Log ONE point per eval checkpoint: the mean reward
             mean_eval_reward = float(np.mean(rewards))
-            
-            # Training reward from Monitor's rolling buffer
-            ep_info = self.model.ep_info_buffer
-            if ep_info is not None and len(ep_info) > 0:
-                mean_train_reward = float(np.mean([ep['r'] for ep in ep_info]))
-            else:
-                mean_train_reward = np.nan
-            
-            self.timesteps.append(self.n_calls)
-            self.eval_rewards.append(mean_eval_reward)
-            self.train_rewards.append(mean_train_reward)
+            self.episode_log.append({
+                'timestep': self.num_timesteps,
+                'episode': self._total_train_episodes,
+                'reward': mean_eval_reward,
+                'source': 'eval',
+            })
             
             if self.verbose:
-                print(f"  Step {self.n_calls:>7d} | Train: {mean_train_reward:7.3f} | Eval: {mean_eval_reward:7.3f}")
+                recent_train = [e['reward'] for e in self.episode_log
+                                if e['source'] == 'train'][-10:]
+                mean_train = float(np.mean(recent_train)) if recent_train else np.nan
+                print(f"  Step {self.num_timesteps:>7d} | Train: {mean_train:7.3f} | Eval: {mean_eval_reward:7.3f}")
             
             self.logger.record("eval/mean_reward", mean_eval_reward)
-            self.logger.record("train/mean_reward", mean_train_reward)
             
             if mean_eval_reward > self.best_reward:
                 self.best_reward = mean_eval_reward
         
         return True
-
-
-def plot_reward_curve(callback, output_path):
-    """Save training + eval reward curves on same plot."""
-    if len(callback.timesteps) == 0:
-        print("No reward data to plot.")
-        return
-    
-    fig, ax = plt.subplots(figsize=(10, 6))
-    ax.plot(callback.timesteps, callback.train_rewards, marker='s', linewidth=2,
-            color='#f97316', label='Training', alpha=0.8)
-    ax.plot(callback.timesteps, callback.eval_rewards, marker='o', linewidth=2,
-            color='#2563eb', label='Test (unseen data)')
-    ax.axhline(y=callback.best_reward, color='#16a34a', linestyle='--', alpha=0.5,
-               label=f'Best eval: {callback.best_reward:.2f}')
-    ax.set_xlabel('Training Timesteps')
-    ax.set_ylabel('Mean Episode Reward')
-    ax.set_title('PPO Training: Train vs Test Reward Curves')
-    ax.grid(True, alpha=0.3)
-    ax.legend(loc='lower right')
-    plt.tight_layout()
-    plt.savefig(output_path, dpi=120)
-    plt.close()
-    print(f"Reward plot saved to: {output_path}")
 
 
 # ============================================================
@@ -253,22 +244,28 @@ def train(args):
         verbose=1,
     )
     
-    model.learn(
-        total_timesteps=args.timesteps,
-        callback=reward_callback,
-        progress_bar=True,
-    )
+    try:
+        model.learn(
+            total_timesteps=args.timesteps,
+            callback=reward_callback,
+            progress_bar=True,
+        )
+    except KeyboardInterrupt:
+        print("\n\nTraining interrupted — saving progress so far...")
     
-    # Save reward curves
-    plot_path = os.path.join(args.output_dir, 'training_reward_curve.png')
-    plot_reward_curve(reward_callback, plot_path)
+    # Save single CSV with all episode data (train + eval)
+    episode_df = pd.DataFrame(reward_callback.episode_log)
+    csv_path = os.path.join(args.output_dir, 'training_episodes.csv')
+    episode_df.to_csv(csv_path, index=False)
+    n_train = len(episode_df[episode_df['source'] == 'train'])
+    n_eval = len(episode_df[episode_df['source'] == 'eval'])
+    print(f"Episode log saved: {n_train} train + {n_eval} eval = {len(episode_df)} total")
     
-    reward_df = pd.DataFrame({
-        'timesteps': reward_callback.timesteps,
-        'train_reward': reward_callback.train_rewards,
-        'eval_reward': reward_callback.eval_rewards,
-    })
-    reward_df.to_csv(os.path.join(args.output_dir, 'training_reward_curve.csv'), index=False)
+    # Generate plots from the CSV (uses plot_training.py)
+    from plot_training import plot_lines, plot_shaded_both, plot_shaded_test_only
+    plot_lines(episode_df, os.path.join(args.output_dir, 'plot1_lines.png'))
+    plot_shaded_both(episode_df, os.path.join(args.output_dir, 'plot2_shaded_both.png'))
+    plot_shaded_test_only(episode_df, os.path.join(args.output_dir, 'plot3_shaded_test.png'))
     
     # Save model + VecNormalize stats (needed for deployment/re-evaluation)
     model_path = os.path.join(args.output_dir, "ppo_p2p_trading")
@@ -313,8 +310,10 @@ def train(args):
     print("=" * 55)
     print("  summary_ppo.csv            (PPO KPIs)")
     print("  detailed_ppo.csv           (per-step transactions)")
-    print("  training_reward_curve.png  (train + eval curves)")
-    print("  training_reward_curve.csv  (raw reward data)")
+    print("  training_episodes.csv      (per-episode reward data)")
+    print("  plot1_lines.png            (train + test lines)")
+    print("  plot2_shaded_both.png      (shaded range, train + test)")
+    print("  plot3_shaded_test.png      (shaded range, test only)")
     print("  ppo_p2p_trading.zip        (trained model)")
     print("  vec_normalize.pkl          (normalization stats)")
     print("=" * 55)
@@ -327,7 +326,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Train PPO for P2P Energy Trading")
     parser.add_argument("--data", type=str, default="data/orderbook.csv")
     parser.add_argument("--alpha_file", type=str, default="data/alphas.csv")
-    parser.add_argument("--timesteps", type=int, default=1_000_000,
+    parser.add_argument("--timesteps", type=int, default=500_000,
                         help="Total training timesteps (Tier 1 default: 1M)")
     parser.add_argument("--lr", type=float, default=3e-4,
                         help="Constant learning rate (no decay)")
@@ -340,7 +339,7 @@ if __name__ == "__main__":
                         help="Discount factor")
     parser.add_argument("--eval_freq", type=int, default=10_000)
     parser.add_argument("--seed", type=int, default=42)
-    parser.add_argument("--output_dir", type=str, default="orderbook_results")
+    parser.add_argument("--output_dir", type=str, default="orderbook_results/ppo")
     parser.add_argument("--log_dir", type=str, default="logs/tensorboard")
     parser.add_argument("--keep_intermediate", action="store_true")
     

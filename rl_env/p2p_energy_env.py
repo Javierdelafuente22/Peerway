@@ -166,8 +166,11 @@ class P2PEnergyTradingEnv(gym.Env):
         # This distinction is critical for PPO: `terminated=True` tells SB3 the terminal
         # value is 0 (no bootstrap), which destroys GAE advantage estimation for episodic
         # daily tasks. `truncated=True` correctly tells SB3 to bootstrap the value.
-        terminated = False
-        truncated = self.current_step >= self.episode_length
+        #terminated = False
+        #truncated = self.current_step >= self.episode_length
+
+        terminated = self.current_step >= self.episode_length
+        truncated = False
         
         # 7. Build next observation
         # On truncation (day ended), we return the last valid observation of the day
