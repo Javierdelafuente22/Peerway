@@ -136,7 +136,7 @@ def run_evaluation_pipeline(df, policy_fn, output_dir, policy_name="policy",
     # Step 2: Run orderbook_basic.py for exact KPIs
     print(f"\nRunning orderbook clearing for '{policy_name}'...")
     
-    from orderbook_basic import run_energy_market_simulation_no_battery
+    from trading_algorithms.orderbook_basic import run_energy_market_simulation_no_battery
     
     detailed_csv = os.path.join(output_dir, f'detailed_{policy_name}.csv')
     summary_csv = os.path.join(output_dir, f'summary_{policy_name}.csv')

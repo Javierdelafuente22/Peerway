@@ -384,7 +384,7 @@ def train(args):
         csv_df.to_csv(modified_csv, index=False)
 
     # Step 3: Run orderbook clearing for exact KPIs
-    from orderbook_basic import run_energy_market_simulation_no_battery
+    from trading_algorithms.orderbook_basic import run_energy_market_simulation_no_battery
     run_energy_market_simulation_no_battery(
         input_file=modified_csv,
         alpha_file=args.alpha_file,
