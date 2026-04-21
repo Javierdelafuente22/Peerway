@@ -181,6 +181,163 @@ def plot_lp_vs_ppo(ppo_df, lp_df, output_path):
 
 
 # ============================================================
+# Run Heuristic day-by-day to get hourly SoC
+# ============================================================
+def run_heuristic_daily(df_test):
+    """
+    Run heuristic through test set, recording SoC per step.
+    Note: heuristic uses a 48-hour rolling price window, so we feed
+    the full test set sequentially (not resetting price memory per day)
+    but DO reset SoC each day to match PPO/LP.
+    """
+    from collections import deque
+
+    raw_demands = df_test[TARGET_AGENT].values
+    import_prices = df_test['import_price'].values
+    export_prices = df_test['export_price'].values
+    spreads = df_test['spread'].values
+
+    total_days = len(df_test) // 24
+    records = []
+
+    # Heuristic state
+    prices = deque(maxlen=48)
+    max_rate = 0.4
+    efficiency = 0.95
+    min_soc = 0.0
+    max_soc = 1.0
+
+    for day in range(total_days):
+        soc = min_soc  # Reset SoC each day
+
+        for h in range(24):
+            idx = day * 24 + h
+            raw_demand = float(raw_demands[idx])
+            tou = float(import_prices[idx])
+            fit = float(export_prices[idx])
+            spread = float(spreads[idx])
+
+            # Update price memory
+            prices.append(tou)
+
+            # Compute thresholds
+            floor_p, ceil_p, median_p = None, None, None
+            if len(prices) >= 24:
+                floor_p = np.percentile(prices, 20)
+                median_p = np.percentile(prices, 50)
+                ceil_p = np.percentile(prices, 80)
+
+            rem_rate = max_rate
+            demand = raw_demand
+
+            # Priority 1: Self-Consumption / Surplus Capture
+            if demand < 0:
+                charge = min(abs(demand), rem_rate, (max_soc - soc) / efficiency)
+                soc += charge * efficiency
+                rem_rate -= charge
+                demand += charge
+            elif demand > 0:
+                if median_p is not None and (tou >= median_p or tou >= ceil_p):
+                    available = soc - min_soc
+                    discharge = min(demand, rem_rate, available)
+                    soc -= discharge
+                    rem_rate -= discharge
+                    demand -= discharge
+
+            # Priority 2: Market Arbitrage
+            if floor_p is not None and rem_rate > 0:
+                if tou <= floor_p and soc < max_soc:
+                    charge = min(rem_rate, (max_soc - soc) / efficiency)
+                    soc += charge * efficiency
+                    demand += charge
+                elif tou >= ceil_p and soc > min_soc:
+                    available = soc - min_soc
+                    discharge = min(rem_rate, available)
+                    soc -= discharge
+                    demand -= discharge
+
+            records.append({
+                'day': day,
+                'hour': h,
+                'soc': soc,
+            })
+
+    return pd.DataFrame(records)
+
+
+# ============================================================
+# Plot: Heuristic vs PPO vs LP comparison
+# ============================================================
+def plot_all_strategies(ppo_df, lp_df, heuristic_df, output_path):
+    """
+    Three panels by spread regime. Each shows SoC for all three strategies
+    + import price + net community load.
+    """
+    day_spreads = ppo_df.groupby('day')['spread'].mean()
+    terciles = day_spreads.quantile([0.33, 0.66])
+    high_days = day_spreads[day_spreads >= terciles[0.66]].index
+    med_days = day_spreads[(day_spreads >= terciles[0.33]) & (day_spreads < terciles[0.66])].index
+    low_days = day_spreads[day_spreads < terciles[0.33]].index
+
+    regimes = [
+        ('High spread days', high_days),
+        ('Medium spread days', med_days),
+        ('Low spread days', low_days),
+    ]
+
+    fig, axes = plt.subplots(3, 1, figsize=(14, 12), sharex=True)
+    hours = np.arange(24)
+
+    for i, (ax, (label, day_indices)) in enumerate(zip(axes, regimes)):
+        ppo_regime = ppo_df[ppo_df['day'].isin(day_indices)]
+        lp_regime = lp_df[lp_df['day'].isin(day_indices)]
+        heur_regime = heuristic_df[heuristic_df['day'].isin(day_indices)]
+
+        if len(ppo_regime) == 0:
+            continue
+
+        ppo_hourly = ppo_regime.groupby('hour').agg(
+            soc=('soc', 'mean'),
+            import_price=('import_price', 'mean'),
+            net_community=('net_community', 'mean'),
+        )
+        lp_hourly = lp_regime.groupby('hour')['soc'].mean()
+        heur_hourly = heur_regime.groupby('hour')['soc'].mean()
+
+        # Three SoC lines
+        ax.plot(hours, heur_hourly.values, linewidth=2, color='#94a3b8',
+                linestyle='-.', label='Heuristic SoC (price percentiles)')
+        ax.plot(hours, ppo_hourly['soc'].values, linewidth=2.5, color='#2563eb',
+                label='PPO SoC (learned policy)')
+        ax.plot(hours, lp_hourly.values, linewidth=2.5, color='#dc2626',
+                linestyle='--', label='LP SoC (perfect foresight)')
+
+        # Import price + net community
+        ax.plot(hours, ppo_hourly['import_price'].values, linewidth=1.5, color='#f97316',
+                linestyle=':', alpha=0.7, label='Import price (p/kWh)')
+        ax.plot(hours, ppo_hourly['net_community'].values, linewidth=1.5, color='#7c3aed',
+                linestyle='--', alpha=0.7, label='Net community load (kW)')
+
+        ax.set_ylabel('Value (normalised)')
+        ax.set_ylim(-0.05, 1.05)
+        ax.set_xlim(-0.5, 23.5)
+        ax.set_title(label, fontsize=13, fontweight='bold')
+        ax.grid(True, alpha=0.2)
+        ax.set_xticks(range(0, 24, 2))
+
+        if i == 0:
+            ax.legend(loc='upper left', fontsize=9)
+
+    axes[-1].set_xlabel('Hour of day')
+    fig.suptitle('Battery Strategy Comparison: Heuristic vs PPO vs LP Upper Bound',
+                 fontsize=15, fontweight='bold', y=1.01)
+    plt.tight_layout()
+    plt.savefig(output_path, dpi=150, bbox_inches='tight')
+    plt.close()
+    print(f"All strategies plot saved: {output_path}")
+
+
+# ============================================================
 # Main
 # ============================================================
 if __name__ == "__main__":
@@ -203,5 +360,12 @@ if __name__ == "__main__":
 
     os.makedirs(OUTPUT_DIR, exist_ok=True)
     plot_lp_vs_ppo(ppo_df, lp_df, os.path.join(OUTPUT_DIR, 'plot_lp_vs_ppo.png'))
+
+    print("\nRunning heuristic (day-by-day)...")
+    heur_df = run_heuristic_daily(df_test)
+    print(f"  {len(heur_df)} rows ({heur_df['day'].max() + 1} days)")
+
+    plot_all_strategies(ppo_df, lp_df, heur_df,
+                        os.path.join(OUTPUT_DIR, 'plot_all_strategies.png'))
 
     print("\nDone.")
