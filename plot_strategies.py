@@ -232,15 +232,15 @@ def plot_all_strategies(ppo_df, lp_df, heuristic_df, output_path):
         lp_hourly = lp_regime.groupby('hour')['soc'].mean()
         heur_hourly = heur_regime.groupby('hour')['soc'].mean()
 
-        ax.plot(hours, heur_hourly.values, linewidth=2.5, color='#a855f7',
-                linestyle='-.', label='Heuristic SoC (price percentiles)')
-        ax.plot(hours, ppo_hourly['soc'].values, linewidth=2.5, color='#2563eb',
+        ax.plot(hours, heur_hourly.values, linewidth=2, color='#dc2626',
+                label='Heuristic SoC (price percentiles)')
+        ax.plot(hours, ppo_hourly['soc'].values, linewidth=2, color='#2563eb',
                 label='PPO SoC (learned policy)')
-        ax.plot(hours, lp_hourly.values, linewidth=2.5, color='#dc2626',
-                linestyle='--', label='LP SoC (perfect foresight)')
-        ax.plot(hours, ppo_hourly['import_price'].values, linewidth=1.5, color='#f97316',
+        ax.plot(hours, lp_hourly.values, linewidth=2, color='#16a34a',
+                label='LP SoC (perfect foresight)')
+        ax.plot(hours, ppo_hourly['import_price'].values, linewidth=2.5, color='#f97316',
                 linestyle=':', alpha=0.7, label='Import price (p/kWh)')
-        ax.plot(hours, ppo_hourly['net_community'].values, linewidth=1.5, color='#7c3aed',
+        ax.plot(hours, ppo_hourly['net_community'].values, linewidth=2, color='#7c3aed',
                 linestyle='--', alpha=0.7, label='Net community load (kW)')
 
         ax.set_ylabel('Value (normalised)')
@@ -259,6 +259,52 @@ def plot_all_strategies(ppo_df, lp_df, heuristic_df, output_path):
     plt.savefig(output_path, dpi=150, bbox_inches='tight')
     plt.close()
     print(f"All strategies plot saved: {output_path}")
+
+
+# ============================================================
+# Plot: SoC-only comparison (no price/community lines)
+# ============================================================
+def plot_soc_comparison(ppo_df, lp_df, heuristic_df, output_path):
+    high_days, low_days = _get_spread_regimes(ppo_df)
+    regimes = [('High spread days', high_days), ('Low spread days', low_days)]
+
+    fig, axes = plt.subplots(2, 1, figsize=(14, 9), sharex=True)
+    hours = np.arange(24)
+
+    for i, (ax, (label, day_indices)) in enumerate(zip(axes, regimes)):
+        ppo_regime = ppo_df[ppo_df['day'].isin(day_indices)]
+        lp_regime = lp_df[lp_df['day'].isin(day_indices)]
+        heur_regime = heuristic_df[heuristic_df['day'].isin(day_indices)]
+        if len(ppo_regime) == 0:
+            continue
+
+        ppo_hourly = ppo_regime.groupby('hour')['soc'].mean()
+        lp_hourly = lp_regime.groupby('hour')['soc'].mean()
+        heur_hourly = heur_regime.groupby('hour')['soc'].mean()
+
+        ax.plot(hours, heur_hourly.values, linewidth=2, color='#dc2626',
+                label='Heuristic SoC (price percentiles)')
+        ax.plot(hours, ppo_hourly.values, linewidth=2, color='#2563eb',
+                label='PPO SoC (learned policy)')
+        ax.plot(hours, lp_hourly.values, linewidth=2, color='#16a34a',
+                label='LP SoC (perfect foresight)')
+
+        ax.set_ylabel('Battery SoC (normalised)')
+        ax.set_ylim(-0.05, 1.05)
+        ax.set_xlim(-0.5, 23.5)
+        ax.set_title(label, fontsize=13, fontweight='bold')
+        ax.grid(True, alpha=0.2)
+        ax.set_xticks(range(0, 24, 2))
+        if i == 0:
+            ax.legend(loc='upper left', fontsize=STRATEGY_LEGEND_SIZE)
+
+    axes[-1].set_xlabel('Hour of day')
+    fig.suptitle('Battery SoC Comparison: Heuristic vs PPO vs LP Upper Bound',
+                 fontsize=15, fontweight='bold', y=1.01)
+    plt.tight_layout()
+    plt.savefig(output_path, dpi=150, bbox_inches='tight')
+    plt.close()
+    print(f"SoC comparison plot saved: {output_path}")
 
 
 # ============================================================
@@ -289,7 +335,7 @@ if __name__ == "__main__":
     print(f"  {len(heur_df)} rows ({heur_df['day'].max() + 1} days)")
 
     os.makedirs(OUTPUT_DIR, exist_ok=True)
-    plot_lp_vs_ppo(ppo_df, lp_df, os.path.join(OUTPUT_DIR, 'plot_lp_vs_ppo.png'))
     plot_all_strategies(ppo_df, lp_df, heur_df, os.path.join(OUTPUT_DIR, 'plot_all_strategies.png'))
+    plot_soc_comparison(ppo_df, lp_df, heur_df, os.path.join(OUTPUT_DIR, 'plot_soc_comparison.png'))
 
     print("\nDone.")
