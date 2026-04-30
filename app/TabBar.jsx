@@ -23,10 +23,9 @@ function TabBar({ active, onChange }) {
   return (
     <div style={{
       position: 'absolute', bottom: 0, left: 0, right: 0,
-      height: 64,
       background: '#fff',
       borderTop: '1px solid var(--cream-200)',
-      padding: '4px 8px 8px',
+      padding: '4px 8px calc(8px + env(safe-area-inset-bottom, 0px))',
       display: 'flex', alignItems: 'center', justifyContent: 'space-around',
       boxShadow: '0 -4px 20px rgba(10,12,11,0.04)',
       zIndex: 10,
