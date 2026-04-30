@@ -44,11 +44,6 @@ function OnboardingFlow({ onComplete }) {
         background: 'var(--cream-50, #F4F5F2)',
         position: 'relative',
         overflow: 'hidden',
-        paddingTop: 'env(safe-area-inset-top, 0px)',
-        paddingBottom: 'env(safe-area-inset-bottom, 0px)',
-        paddingLeft: 'env(safe-area-inset-left, 0px)',
-        paddingRight: 'env(safe-area-inset-right, 0px)',
-        boxSizing: 'border-box',
       }}>
         {content}
       </div>

@@ -5,7 +5,6 @@
 function MainAppShell() {
   const [tab, setTab] = React.useState('dashboard');
 
-  // Detect if we're running as a home-screen PWA (standalone) or in-browser
   const isStandalone =
     window.matchMedia('(display-mode: standalone)').matches ||
     window.navigator.standalone === true;
@@ -28,7 +27,7 @@ function MainAppShell() {
     </div>
   );
 
-  // PWA / standalone → full-screen, no frame, no wrapper
+  // PWA / standalone → full-screen, no frame, no extra padding
   if (isStandalone) {
     return (
       <div style={{
@@ -38,18 +37,13 @@ function MainAppShell() {
         background: 'var(--cream-50, #F4F5F2)',
         position: 'relative',
         overflow: 'hidden',
-        paddingTop: 'env(safe-area-inset-top, 0px)',
-        paddingBottom: 'env(safe-area-inset-bottom, 0px)',
-        paddingLeft: 'env(safe-area-inset-left, 0px)',
-        paddingRight: 'env(safe-area-inset-right, 0px)',
-        boxSizing: 'border-box',
       }}>
         {content}
       </div>
     );
   }
 
-  // Desktop / in-browser → centered device frame (original behavior)
+  // Desktop / in-browser → centered device frame
   return (
     <div style={{
       minHeight: '100vh', background: '#E8E3D6',
