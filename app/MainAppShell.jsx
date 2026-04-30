@@ -1,8 +1,14 @@
-// Clean main-app shell — no rails, no tweaks, no debug labels.
-// 5-tab app inside an iOS device frame. Always lands on dashboard first.
+// Clean main-app shell — 5-tab app.
+// In PWA/standalone mode (home screen icon), renders full-screen with no frame.
+// In a browser window (desktop preview), keeps the centered IOSDevice card.
 
 function MainAppShell() {
   const [tab, setTab] = React.useState('dashboard');
+
+  // Detect if we're running as a home-screen PWA (standalone) or in-browser
+  const isStandalone =
+    window.matchMedia('(display-mode: standalone)').matches ||
+    window.navigator.standalone === true;
 
   const renderTab = () => {
     switch (tab) {
@@ -15,6 +21,35 @@ function MainAppShell() {
     }
   };
 
+  const content = (
+    <div key={tab} style={{ height: '100%', position: 'relative' }} className="pw-fade-in">
+      {renderTab()}
+      <TabBar active={tab} onChange={setTab}/>
+    </div>
+  );
+
+  // PWA / standalone → full-screen, no frame, no wrapper
+  if (isStandalone) {
+    return (
+      <div style={{
+        width: '100%',
+        height: '100vh',
+        height: '100svh',
+        background: 'var(--cream-50, #F4F5F2)',
+        position: 'relative',
+        overflow: 'hidden',
+        paddingTop: 'env(safe-area-inset-top, 0px)',
+        paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+        paddingLeft: 'env(safe-area-inset-left, 0px)',
+        paddingRight: 'env(safe-area-inset-right, 0px)',
+        boxSizing: 'border-box',
+      }}>
+        {content}
+      </div>
+    );
+  }
+
+  // Desktop / in-browser → centered device frame (original behavior)
   return (
     <div style={{
       minHeight: '100vh', background: '#E8E3D6',
@@ -22,10 +57,7 @@ function MainAppShell() {
       padding: '20px', boxSizing: 'border-box',
     }}>
       <IOSDevice width={390} height={844}>
-        <div key={tab} style={{ height: '100%', position: 'relative' }} className="pw-fade-in">
-          {renderTab()}
-          <TabBar active={tab} onChange={setTab}/>
-        </div>
+        {content}
       </IOSDevice>
     </div>
   );
