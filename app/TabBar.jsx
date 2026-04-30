@@ -24,6 +24,7 @@ function TabBar({ active, onChange }) {
     <div style={{
       position: 'absolute', bottom: 0, left: 0, right: 0,
       height: 64,
+      boxSizing: 'border-box',
       background: '#fff',
       borderTop: '1px solid var(--cream-200)',
       padding: '4px 8px 8px',

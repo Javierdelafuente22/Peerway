@@ -1,5 +1,5 @@
 // Clean onboarding flow — 6-screen flow. Calls onComplete when done.
-// On mobile (touch + narrow screen), renders full-screen with no frame.
+// On mobile, renders full-screen with no frame.
 // On desktop, keeps the centered IOSDevice card.
 
 function OnboardingFlow({ onComplete }) {
@@ -39,14 +39,15 @@ function OnboardingFlow({ onComplete }) {
     return (
       <div style={{
         position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
+        top: 0, left: 0, right: 0, bottom: 0,
         background: 'var(--cream-50, #F4F5F2)',
+        display: 'flex',
+        flexDirection: 'column',
         overflow: 'hidden',
       }}>
-        {content}
+        <div style={{ flex: 1, overflow: 'hidden' }}>
+          {content}
+        </div>
       </div>
     );
   }

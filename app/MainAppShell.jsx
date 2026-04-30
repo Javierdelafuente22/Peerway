@@ -21,25 +21,20 @@ function MainAppShell() {
     }
   };
 
-  const content = (
-    <div key={tab} style={{ height: '100%', position: 'relative' }} className="pw-fade-in">
-      {renderTab()}
-      <TabBar active={tab} onChange={setTab}/>
-    </div>
-  );
-
   if (isMobile) {
     return (
       <div style={{
         position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
+        top: 0, left: 0, right: 0, bottom: 0,
         background: 'var(--cream-50, #F4F5F2)',
+        display: 'flex',
+        flexDirection: 'column',
         overflow: 'hidden',
       }}>
-        {content}
+        <div key={tab} style={{ flex: 1, position: 'relative', overflow: 'hidden' }} className="pw-fade-in">
+          {renderTab()}
+          <TabBar active={tab} onChange={setTab}/>
+        </div>
       </div>
     );
   }
@@ -51,7 +46,10 @@ function MainAppShell() {
       padding: '20px', boxSizing: 'border-box',
     }}>
       <IOSDevice width={390} height={844}>
-        {content}
+        <div key={tab} style={{ height: '100%', position: 'relative' }} className="pw-fade-in">
+          {renderTab()}
+          <TabBar active={tab} onChange={setTab}/>
+        </div>
       </IOSDevice>
     </div>
   );
