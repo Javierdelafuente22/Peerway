@@ -3,18 +3,18 @@
 <head>
   <meta charset="utf-8">
 
-  <!-- Mobile / iPhone full-screen PWA-style demo -->
+  <!-- Mobile / iPhone full-screen PWA-style -->
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Peerway">
-  <meta name="theme-color" content="#E8E3D6">
+  <meta name="theme-color" content="#F4F5F2">
   <meta name="format-detection" content="telephone=no">
 
   <title>Peerway</title>
 
-  <!-- App icon (inline SVG, used as Apple touch icon when added to home screen) -->
+  <!-- App icon -->
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%2307160F'/><circle cx='50' cy='50' r='20' fill='%2300C06F'/><path d='M52 34 L40 54 L48 54 L44 66 L60 46 L52 46 Z' fill='%2307160F'/></svg>">
   <link rel="apple-touch-icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%2307160F'/><circle cx='50' cy='50' r='20' fill='%2300C06F'/><path d='M52 34 L40 54 L48 54 L44 66 L60 46 L52 46 Z' fill='%2307160F'/></svg>">
 
@@ -32,7 +32,7 @@
     /* Lock the page so it feels like a real app, not a webpage */
     html, body {
       margin: 0; padding: 0;
-      background: #E8E3D6;
+      background: #F4F5F2;
       overflow: hidden;
       overscroll-behavior: none;
       -webkit-tap-highlight-color: transparent;
@@ -61,7 +61,7 @@
     window.addEventListener('load', () => {
       setTimeout(() => window.scrollTo(0, 1), 0);
     });
-    // Prevent iOS rubber-band scroll on the body (the device frame handles its own scrolling).
+    // Prevent iOS rubber-band scroll on the body.
     document.addEventListener('touchmove', (e) => {
       if (e.target === document.body || e.target === document.documentElement) {
         e.preventDefault();
