@@ -1,12 +1,13 @@
 // Clean onboarding flow — 6-screen flow. Calls onComplete when done.
-// In PWA/standalone mode, renders full-screen with no frame.
-// In a browser window (desktop preview), keeps the centered IOSDevice card.
+// On mobile (touch + narrow screen), renders full-screen with no frame.
+// On desktop, keeps the centered IOSDevice card.
 
 function OnboardingFlow({ onComplete }) {
   const [step, setStep] = React.useState(0);
   const [state, setState] = React.useState({});
 
-  const isStandalone =
+  const isMobile =
+    window.matchMedia('(max-width: 600px) and (pointer: coarse)').matches ||
     window.matchMedia('(display-mode: standalone)').matches ||
     window.navigator.standalone === true;
 
@@ -34,15 +35,15 @@ function OnboardingFlow({ onComplete }) {
     </div>
   );
 
-  // PWA / standalone → full-screen, no frame
-  if (isStandalone) {
+  if (isMobile) {
     return (
       <div style={{
-        width: '100%',
-        height: '100vh',
-        height: '100svh',
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
         background: 'var(--cream-50, #F4F5F2)',
-        position: 'relative',
         overflow: 'hidden',
       }}>
         {content}
@@ -50,7 +51,6 @@ function OnboardingFlow({ onComplete }) {
     );
   }
 
-  // Desktop / in-browser → centered device frame
   return (
     <div style={{
       minHeight: '100vh', background: '#E8E3D6',
