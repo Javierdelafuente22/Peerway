@@ -23,11 +23,11 @@ function TabBar({ active, onChange }) {
   return (
     <div style={{
       position: 'absolute', bottom: 0, left: 0, right: 0,
-      height: 64,
+      height: 78,
       boxSizing: 'border-box',
       background: '#fff',
       borderTop: '1px solid var(--cream-200)',
-      padding: '4px 8px 8px',
+      padding: '8px 8px 12px',
       display: 'flex', alignItems: 'center', justifyContent: 'space-around',
       boxShadow: '0 -4px 20px rgba(10,12,11,0.04)',
       zIndex: 10,
@@ -77,7 +77,7 @@ function TabBar({ active, onChange }) {
 function TabHeader({ eyebrow, title, right, subtitle }) {
   return (
     <div style={{
-      padding: '58px 24px 16px',
+      padding: '16px 24px 16px',
       background: 'var(--cream-50)',
       position: 'sticky', top: 0, zIndex: 2,
     }}>
