@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+
+  <!-- Mobile / iPhone full-screen PWA-style demo -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Peerway">
+  <meta name="theme-color" content="#E8E3D6">
+  <meta name="format-detection" content="telephone=no">
+
+  <title>Peerway</title>
+
+  <!-- App icon (inline SVG, used as Apple touch icon when added to home screen) -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%2307160F'/><circle cx='50' cy='50' r='20' fill='%2300C06F'/><path d='M52 34 L40 54 L48 54 L44 66 L60 46 L52 46 Z' fill='%2307160F'/></svg>">
+  <link rel="apple-touch-icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%2307160F'/><circle cx='50' cy='50' r='20' fill='%2300C06F'/><path d='M52 34 L40 54 L48 54 L44 66 L60 46 L52 46 Z' fill='%2307160F'/></svg>">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="tokens.css">
+
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+  <style>
+    /* Lock the page so it feels like a real app, not a webpage */
+    html, body {
+      margin: 0; padding: 0;
+      background: #E8E3D6;
+      overflow: hidden;
+      overscroll-behavior: none;
+      -webkit-tap-highlight-color: transparent;
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      user-select: none;
+      width: 100%;
+      height: 100vh;
+      height: 100svh;
+    }
+    #root {
+      width: 100%;
+      height: 100vh;
+      height: 100svh;
+      overflow: hidden;
+    }
+    /* Allow text selection inside inputs/textareas */
+    input, textarea {
+      -webkit-user-select: text;
+      user-select: text;
+    }
+  </style>
+
+  <script>
+    // Hide the URL bar on mobile Safari by scrolling on load.
+    window.addEventListener('load', () => {
+      setTimeout(() => window.scrollTo(0, 1), 0);
+    });
+    // Prevent iOS rubber-band scroll on the body (the device frame handles its own scrolling).
+    document.addEventListener('touchmove', (e) => {
+      if (e.target === document.body || e.target === document.documentElement) {
+        e.preventDefault();
+      }
+    }, { passive: false });
+  </script>
+</head>
+<body>
+  <div id="root"></div>
+
+  <template id="__bundler_thumbnail">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+      <rect width="100" height="100" fill="#07160F"/>
+      <circle cx="50" cy="50" r="20" fill="#00C06F"/>
+      <path d="M52 34 L40 54 L48 54 L44 66 L60 46 L52 46 Z" fill="#07160F"/>
+    </svg>
+  </template>
+
+  <!-- Shared primitives -->
+  <script type="text/babel" src="ios-frame.jsx"></script>
+  <script type="text/babel" src="components/Icons.jsx"></script>
+  <script type="text/babel" src="components/Primitives.jsx"></script>
+  <script type="text/babel" src="components/States.jsx"></script>
+
+  <!-- Onboarding screens -->
+  <script type="text/babel" src="components/Screen1_Postcode.jsx"></script>
+  <script type="text/babel" src="components/Screen2_Connected.jsx"></script>
+  <script type="text/babel" src="components/Screen3_Savings.jsx"></script>
+  <script type="text/babel" src="components/Screen4_Profile.jsx"></script>
+  <script type="text/babel" src="components/Screen5_Legal.jsx"></script>
+  <script type="text/babel" src="components/Screen6_AllSet.jsx"></script>
+  <script type="text/babel" src="components/OnboardingFlow.jsx"></script>
+
+  <!-- Main app -->
+  <script type="text/babel" src="app/Icons2.jsx"></script>
+  <script type="text/babel" src="app/TabBar.jsx"></script>
+  <script type="text/babel" src="app/DashboardTab.jsx"></script>
+  <script type="text/babel" src="app/HouseTab.jsx"></script>
+  <script type="text/babel" src="app/CommunityTab.jsx"></script>
+  <script type="text/babel" src="app/AssistantTab.jsx"></script>
+  <script type="text/babel" src="app/ProfileTab.jsx"></script>
+  <script type="text/babel" src="app/MainAppShell.jsx"></script>
+
+  <!-- Root orchestrator -->
+  <script type="text/babel" src="app/PeerwayRoot.jsx"></script>
+
+  <script type="text/babel">
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<PeerwayRoot/>);
+  </script>
+</body>
+</html>
