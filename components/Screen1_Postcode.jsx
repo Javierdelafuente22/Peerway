@@ -5,6 +5,7 @@ function Screen1_Postcode({ state, setState, onNext }) {
   const [communityId, setCommunityId] = React.useState(state.communityId || '');
   const [resolved, setResolved] = React.useState(state.postcode ? { area: 'Fulham', neighbors: 47 } : null);
   const [resolving, setResolving] = React.useState(false);
+  const [peerInfoOpen, setPeerInfoOpen] = React.useState(false);
 
   // "Resolve" postcode to area (mock) on valid-looking UK postcode
   const ukLike = /^[A-Z]{1,2}\d{1,2}[A-Z]?\s?\d?[A-Z]{0,2}$/i;
@@ -37,7 +38,7 @@ function Screen1_Postcode({ state, setState, onNext }) {
       <PwPageTitle
         eyebrow="Step 1 — Your energy community"
         title="Welcome to Peerway, Sarah."
-        subtitle="You have been redirected from your Octopus online account. Your postcode helps us confirm who you can trade energy with."
+        subtitle="You have been securely redirected from your Octopus online account. Your postcode helps us confirm who you can trade energy with."
         size={34}
       />
 
@@ -128,6 +129,36 @@ function Screen1_Postcode({ state, setState, onNext }) {
               placeholder="Community ID (optional)"
               style={{ height: 48, fontSize: 15 }}
             />
+          </div>
+        )}
+      </div>
+
+      {/* What is peer trading? expandable */}
+      <div style={{ marginTop: 16 }}>
+        <button onClick={() => setPeerInfoOpen(o => !o)} style={{
+          appearance: 'none', background: 'transparent', border: 0, padding: 0,
+          display: 'inline-flex', alignItems: 'center', gap: 6,
+          color: 'var(--ink-700)', fontSize: 14, fontFamily: 'var(--font-sans)',
+          fontWeight: 500, cursor: 'pointer',
+          borderBottom: '1px dashed var(--ink-400)', paddingBottom: 2,
+        }}>
+          <span>What is peer trading?</span>
+          <div style={{
+            transform: `rotate(${peerInfoOpen ? 90 : 0}deg)`,
+            transition: 'transform .22s ease',
+          }}>
+            <IconChevron size={14}/>
+          </div>
+        </button>
+        {peerInfoOpen && (
+          <div className="pw-fade-in" style={{
+            marginTop: 12, padding: '14px 16px',
+            background: 'var(--surface)',
+            border: '1px solid var(--cream-200)',
+            borderRadius: 'var(--r-md)',
+            fontSize: 13, lineHeight: 1.55, color: 'var(--ink-600)',
+          }}>
+            Peer trading lets you buy and sell solar electricity directly with your neighbors at cheaper rates. It lowers your bills while creating a cleaner, more resilient energy grid for everyone. Peerway handles everything automatically - from optimising your bills to adapting to your household needs.
           </div>
         )}
       </div>
