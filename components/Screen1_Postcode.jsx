@@ -36,8 +36,8 @@ function Screen1_Postcode({ state, setState, onNext }) {
 
       <PwPageTitle
         eyebrow="Step 1 — Your energy community"
-        title="Welcome to Peerway."
-        subtitle="Your postcode tells us which neighbors you can trade energy with."
+        title="Welcome to Peerway, Sarah."
+        subtitle="You have been redirected from your Octopus online account. Your postcode helps us confirm who you can trade energy with."
         size={34}
       />
 

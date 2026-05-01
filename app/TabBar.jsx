@@ -8,7 +8,6 @@ const TABS = [
 ];
 
 function TabBar({ active, onChange }) {
-  // Map tab id → icon
   const iconFor = (id, filled) => {
     const map = {
       home:      <IconTabHome size={22}      filled={filled}/>,
@@ -75,9 +74,14 @@ function TabBar({ active, onChange }) {
 
 // Page header used by all 5 tabs for consistent hierarchy.
 function TabHeader({ eyebrow, title, right, subtitle }) {
+  const isMobile =
+    window.matchMedia('(max-width: 600px) and (pointer: coarse)').matches ||
+    window.matchMedia('(display-mode: standalone)').matches ||
+    window.navigator.standalone === true;
+
   return (
     <div style={{
-      padding: '16px 24px 16px',
+      padding: isMobile ? '16px 24px 16px' : '58px 24px 16px',
       background: 'var(--cream-50)',
       position: 'sticky', top: 0, zIndex: 2,
     }}>

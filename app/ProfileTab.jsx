@@ -171,7 +171,7 @@ function ProfileTab() {
             lineHeight: 1.5, marginBottom: 14, textWrap: 'pretty',
           }}>
             {delConfirm === 0 && 'Trading stops, your data is erased within 30 days, and your community share is reallocated. This cannot be undone.'}
-            {delConfirm === 1 && 'Really sure? Your £284.60 YTD savings history will be gone. Tap again to confirm.'}
+            {delConfirm === 1 && 'Really sure? Trading will end and your account will be deleted. Tap again to confirm.'}
             {delConfirm === 2 && 'Request submitted. Your account will be deleted within 30 days. We\'ve sent an email.'}
           </div>
           {delConfirm < 2 ? (

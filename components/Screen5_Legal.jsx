@@ -14,7 +14,7 @@ function Screen5_Legal({ onNext, onBack }) {
       <PwPageTitle
         eyebrow="Step 4 — Consent"
         title="Terms, in plain English."
-        subtitle="The short version is below. Tap any line for the full text."
+        subtitle="The short version of how your data is handled is below."
         size={32}
       />
 
