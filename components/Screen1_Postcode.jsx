@@ -158,7 +158,7 @@ function Screen1_Postcode({ state, setState, onNext }) {
             borderRadius: 'var(--r-md)',
             fontSize: 13, lineHeight: 1.55, color: 'var(--ink-600)',
           }}>
-            Peer trading lets you buy and sell solar electricity directly with your neighbors at cheaper rates. It lowers your bills while creating a cleaner, more resilient energy grid for everyone. Peerway handles everything automatically - from optimising your bills to adapting to your household needs.
+           Peer trading lets you <span style={{ fontWeight: 600, color: 'var(--ink-900)' }}>buy and sell solar electricity directly</span> with your neighbors at cheaper rates. It lowers your bills while creating a cleaner, <span style={{ fontWeight: 600, color: 'var(--ink-900)' }}>more resilient energy grid for everyone</span>. Peerway handles everything <span style={{ fontWeight: 600, color: 'var(--ink-900)' }}>automatically</span> - from optimising your bills to adapting to your household needs.
           </div>
         )}
       </div>
