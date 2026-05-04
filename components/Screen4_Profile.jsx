@@ -26,7 +26,7 @@ function Screen4_Profile({ state, setState, onNext, onBack }) {
       />
 
       {/* Card */}
-      <div className="pw-card" style={{ marginTop: 24, overflow: 'hidden' }}>
+      <div className="pw-card" style={{ marginTop: 24, overflow: 'visible' }}>
         {/* Header strip */}
         <div style={{
           background: 'var(--lime-50)',
