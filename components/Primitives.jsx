@@ -101,7 +101,7 @@ function PwPageTitle({ eyebrow, title, subtitle, size = 32 }) {
   return (
     <div style={{ marginTop: 12, marginBottom: 24 }}>
       {eyebrow && (
-        <div className="t-label" style={{ color: 'var(--lime-500)', marginBottom: 10 }}>
+        <div className="t-label" style={{ fontSize: 12, color: 'var(--lime-600)', marginBottom: 10 }}>
           {eyebrow}
         </div>
       )}

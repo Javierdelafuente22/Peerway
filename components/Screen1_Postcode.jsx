@@ -1,7 +1,6 @@
 // Screen 1 — Welcome + pre-filled postcode confirmation
 function Screen1_Postcode({ state, setState, onNext }) {
-  const [editing, setEditing] = React.useState(false);
-  const [postcode, setPostcode] = React.useState(state.postcode || 'SW6 3JD');
+  const [postcode] = React.useState(state.postcode || 'SW6 3JD');
   const [communityOpen, setCommunityOpen] = React.useState(!!state.communityId);
   const [communityId, setCommunityId] = React.useState(state.communityId || '');
   const [peerInfoOpen, setPeerInfoOpen] = React.useState(false);
@@ -29,7 +28,6 @@ function Screen1_Postcode({ state, setState, onNext }) {
 
       {/* Pre-filled postcode confirmation card */}
       <div style={{ marginTop: 8 }}>
-        {!editing ? (
           <div style={{
             background: 'var(--lime-50)',
             border: '1px solid var(--lime-100)',
@@ -55,49 +53,7 @@ function Screen1_Postcode({ state, setState, onNext }) {
                 <span className="t-num" style={{ fontSize: 14, color: 'var(--ink-900)', fontWeight: 600 }}>{areaData.neighbors}</span> neighbors are already trading nearby
               </div>
             </div>
-            <button onClick={() => setEditing(true)} style={{
-              appearance: 'none', background: 'transparent', border: 0, padding: 4,
-              color: 'var(--ink-400)', cursor: 'pointer',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }} aria-label="Edit postcode">
-              <IconPencil size={14}/>
-            </button>
           </div>
-        ) : (
-          <div>
-            <label className="t-label" style={{ display: 'block', color: 'var(--ink-400)', marginBottom: 10 }}>
-              Postcode
-            </label>
-            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-              <div style={{ position: 'relative', flex: 1 }}>
-                <input
-                  className="pw-input"
-                  value={postcode}
-                  onChange={e => setPostcode(e.target.value)}
-                  placeholder="e.g. SW6 3JD"
-                  autoCapitalize="characters"
-                  autoFocus
-                  style={{ paddingLeft: 48, fontFamily: 'var(--font-sans)', letterSpacing: '0.02em' }}
-                />
-                <div style={{
-                  position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)',
-                  color: 'var(--ink-400)',
-                }}>
-                  <IconPin size={18}/>
-                </div>
-              </div>
-              <button onClick={() => setEditing(false)} style={{
-                appearance: 'none', border: 0, background: 'var(--ink-900)',
-                color: '#fff', borderRadius: 'var(--r-md)',
-                height: 56, padding: '0 16px',
-                fontSize: 14, fontWeight: 500, fontFamily: 'var(--font-sans)',
-                cursor: 'pointer', whiteSpace: 'nowrap',
-              }}>
-                Confirm
-              </button>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* What is peer trading? expandable */}

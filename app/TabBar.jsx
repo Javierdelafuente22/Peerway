@@ -91,7 +91,7 @@ function TabHeader({ eyebrow, title, right, subtitle }) {
       }}>
         <div style={{ flex: 1, minWidth: 0 }}>
           {eyebrow && (
-            <div className="t-label" style={{ color: 'var(--lime-500)', marginBottom: 6 }}>
+            <div className="t-label" style={{ fontSize: 12, color: 'var(--lime-600)', marginBottom: 6 }}>
               {eyebrow}
             </div>
           )}
