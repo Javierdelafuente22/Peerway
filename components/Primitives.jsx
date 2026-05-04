@@ -101,7 +101,7 @@ function PwPageTitle({ eyebrow, title, subtitle, size = 32 }) {
   return (
     <div style={{ marginTop: 12, marginBottom: 24 }}>
       {eyebrow && (
-        <div className="t-label" style={{ fontSize: 13, color: 'var(--lime-600)', marginBottom: 10 }}>
+        <div className="t-label" style={{ fontSize: 12, color: 'var(--lime-600)', marginBottom: 10 }}>
           {eyebrow}
         </div>
       )}
@@ -114,7 +114,7 @@ function PwPageTitle({ eyebrow, title, subtitle, size = 32 }) {
       {subtitle && (
         <p className="t-body" style={{
           fontSize: 15, lineHeight: 1.45, color: 'var(--ink-600)', margin: 0,
-          maxWidth: 360,
+          maxWidth: 320,
         }}>
           {subtitle}
         </p>
@@ -123,54 +123,89 @@ function PwPageTitle({ eyebrow, title, subtitle, size = 32 }) {
   );
 }
 
-// Small info tooltip — auto-positions left vs right based on x
+// Small info tooltip — fixed positioning to viewport + only one open at a time
 function PwTooltip({ label }) {
   const [open, setOpen] = React.useState(false);
-  const [side, setSide] = React.useState('right'); // tooltip sits on which side of trigger
+  const [style, setStyle] = React.useState({});
+  const [arrowStyle, setArrowStyle] = React.useState({});
   const btnRef = React.useRef(null);
+  const idRef = React.useRef(Math.random());
+  const W = 220;
+  const PAD = 12;
+
+  React.useEffect(() => {
+    const handler = (e) => {
+      if (e.detail !== idRef.current) setOpen(false);
+    };
+    window.addEventListener('pw-tooltip-open', handler);
+    return () => window.removeEventListener('pw-tooltip-open', handler);
+  }, []);
+
   React.useEffect(() => {
     if (open && btnRef.current) {
       const r = btnRef.current.getBoundingClientRect();
-      // Find the nearest phone screen container width
-      const host = btnRef.current.closest('.pw-screen');
-      const hostRight = host ? host.getBoundingClientRect().right : window.innerWidth;
-      const hostLeft  = host ? host.getBoundingClientRect().left : 0;
-      const rightSpace = hostRight - r.right;
-      const leftSpace  = r.left - hostLeft;
-      setSide(rightSpace < 140 && leftSpace > rightSpace ? 'left' : 'right');
+      const cx = r.left + r.width / 2;
+      const vw = window.innerWidth;
+
+      // Horizontal: clamp tooltip within viewport
+      let left = cx - W / 2;
+      left = Math.max(PAD, Math.min(left, vw - W - PAD));
+
+      // Arrow points at trigger center
+      const arrowLeft = Math.max(12, Math.min(cx - left, W - 22));
+
+      // Vertical: above or below
+      const above = r.top > window.innerHeight * 0.6;
+      const top = above ? r.top - 8 : r.bottom + 8;
+
+      setStyle({
+        position: 'fixed',
+        left,
+        ...(above ? { bottom: window.innerHeight - r.top + 8 } : { top: r.bottom + 8 }),
+        zIndex: 9999,
+        width: W, padding: '10px 12px',
+        background: 'var(--ink-900)', color: '#F2EFE7',
+        borderRadius: 10, fontSize: 12, lineHeight: 1.45,
+        boxShadow: 'var(--shadow-lg)',
+        letterSpacing: '-0.005em',
+      });
+      setArrowStyle({
+        position: 'absolute',
+        ...(above ? { bottom: -5 } : { top: -5 }),
+        left: arrowLeft,
+        width: 10, height: 10,
+        background: 'var(--ink-900)', transform: 'rotate(45deg)',
+      });
     }
   }, [open]);
 
+  const handleToggle = () => {
+    const next = !open;
+    if (next) {
+      window.dispatchEvent(new CustomEvent('pw-tooltip-open', { detail: idRef.current }));
+    }
+    setOpen(next);
+  };
+
   return (
-    <div style={{ position: 'relative', display: 'inline-flex' }}>
-      <button ref={btnRef} onClick={() => setOpen(o => !o)} style={{
-        appearance: 'none', background: 'transparent', border: 0, padding: 0,
-        color: 'var(--ink-400)', cursor: 'pointer',
-        display: 'inline-flex', alignItems: 'center',
-      }} aria-label="Why we need this">
-        <IconInfo size={14}/>
-      </button>
-      {open && (
-        <div role="tooltip" onClick={() => setOpen(false)} style={{
-          position: 'absolute', top: '140%',
-          ...(side === 'right' ? { left: -8 } : { right: -8 }),
-          zIndex: 10,
-          width: 220, padding: '10px 12px',
-          background: 'var(--ink-900)', color: '#F2EFE7',
-          borderRadius: 10, fontSize: 12, lineHeight: 1.45,
-          boxShadow: 'var(--shadow-lg)',
-          letterSpacing: '-0.005em',
-        }}>
-          <div style={{
-            position: 'absolute', top: -5,
-            ...(side === 'right' ? { left: 12 } : { right: 12 }),
-            width: 10, height: 10,
-            background: 'var(--ink-900)', transform: 'rotate(45deg)',
-          }}/>
+    <React.Fragment>
+      <div style={{ position: 'relative', display: 'inline-flex' }}>
+        <button ref={btnRef} onClick={handleToggle} style={{
+          appearance: 'none', background: 'transparent', border: 0, padding: 0,
+          color: 'var(--ink-400)', cursor: 'pointer',
+          display: 'inline-flex', alignItems: 'center',
+        }} aria-label="Why we need this">
+          <IconInfo size={14}/>
+        </button>
+      </div>
+      {open && ReactDOM.createPortal(
+        <div role="tooltip" onClick={() => setOpen(false)} style={style}>
+          <div style={arrowStyle}/>
           {label}
-        </div>
+        </div>,
+        document.body
       )}
-    </div>
+    </React.Fragment>
   );
 }
 
