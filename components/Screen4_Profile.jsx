@@ -3,11 +3,11 @@ function Screen4_Profile({ state, setState, onNext, onBack }) {
   const [editing, setEditing] = React.useState(null);
 
   const facts = state.profile || [
-    { id: 'name',   icon: <IconHome size={16}/>,      label: 'Name',            value: 'Sarah Chen',               why: "So we can personalize your dashboard and weekly reports." },
-    { id: 'solar',  icon: <IconSolar size={16}/>,     label: 'Solar',           value: '8 panels · 3.2 kWp',       why: "We size trading volume based on your realistic surplus capacity." },
+    { id: 'name',   icon: <IconHome size={16}/>,      label: 'Name',            value: 'Sarah Chen',               why: "So we can personalise your dashboard and weekly reports." },
+    { id: 'solar',  icon: <IconSolar size={16}/>,     label: 'Solar',           value: '8 panels · 3.2 kWp',       why: "So we can trade based on your realistic surplus capacity." },
     { id: 'ev',     icon: <IconCar size={16}/>,       label: 'EV',              value: 'Tesla Model 3',            why: "So we can charge during cheap or green windows automatically." },
-    { id: 'work',   icon: <IconBriefcase size={16}/>, label: 'Work pattern',    value: 'Home 3 days / week',       why: "Knowing when you're home helps us predict your load curve." },
-    { id: 'house',  icon: <IconPeople size={16}/>,    label: 'Household',       value: '2 adults',                 why: "Occupancy shapes heating." },
+    { id: 'work',   icon: <IconBriefcase size={16}/>, label: 'Work pattern',    value: 'Home 3 days / week',       why: "Knowing when you're home helps us adapt to your habits." },
+    { id: 'house',  icon: <IconPeople size={16}/>,    label: 'Household',       value: '2 adults',                 why: "Occupancy shapes consumption." },
   ];
 
   const saveEdit = (id, value) => {

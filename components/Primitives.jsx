@@ -123,15 +123,12 @@ function PwPageTitle({ eyebrow, title, subtitle, size = 32 }) {
   );
 }
 
-// Small info tooltip — fixed positioning to viewport + only one open at a time
+// Small info tooltip — opens above trigger, flips left/right to stay in bounds, one at a time
 function PwTooltip({ label }) {
   const [open, setOpen] = React.useState(false);
-  const [style, setStyle] = React.useState({});
-  const [arrowStyle, setArrowStyle] = React.useState({});
+  const [side, setSide] = React.useState('right');
   const btnRef = React.useRef(null);
   const idRef = React.useRef(Math.random());
-  const W = 220;
-  const PAD = 12;
 
   React.useEffect(() => {
     const handler = (e) => {
@@ -144,38 +141,9 @@ function PwTooltip({ label }) {
   React.useEffect(() => {
     if (open && btnRef.current) {
       const r = btnRef.current.getBoundingClientRect();
-      const cx = r.left + r.width / 2;
-      const vw = window.innerWidth;
-
-      // Horizontal: clamp tooltip within viewport
-      let left = cx - W / 2;
-      left = Math.max(PAD, Math.min(left, vw - W - PAD));
-
-      // Arrow points at trigger center
-      const arrowLeft = Math.max(12, Math.min(cx - left, W - 22));
-
-      // Vertical: above or below
-      const above = r.top > window.innerHeight * 0.6;
-      const top = above ? r.top - 8 : r.bottom + 8;
-
-      setStyle({
-        position: 'fixed',
-        left,
-        ...(above ? { bottom: window.innerHeight - r.top + 8 } : { top: r.bottom + 8 }),
-        zIndex: 9999,
-        width: W, padding: '10px 12px',
-        background: 'var(--ink-900)', color: '#F2EFE7',
-        borderRadius: 10, fontSize: 12, lineHeight: 1.45,
-        boxShadow: 'var(--shadow-lg)',
-        letterSpacing: '-0.005em',
-      });
-      setArrowStyle({
-        position: 'absolute',
-        ...(above ? { bottom: -5 } : { top: -5 }),
-        left: arrowLeft,
-        width: 10, height: 10,
-        background: 'var(--ink-900)', transform: 'rotate(45deg)',
-      });
+      // 220px tooltip + 8px offset = needs ~228px of space on the opening side
+      const rightSpace = window.innerWidth - r.left;
+      setSide(rightSpace < 280 ? 'left' : 'right');
     }
   }, [open]);
 
@@ -188,24 +156,35 @@ function PwTooltip({ label }) {
   };
 
   return (
-    <React.Fragment>
-      <div style={{ position: 'relative', display: 'inline-flex' }}>
-        <button ref={btnRef} onClick={handleToggle} style={{
-          appearance: 'none', background: 'transparent', border: 0, padding: 0,
-          color: 'var(--ink-400)', cursor: 'pointer',
-          display: 'inline-flex', alignItems: 'center',
-        }} aria-label="Why we need this">
-          <IconInfo size={14}/>
-        </button>
-      </div>
-      {open && ReactDOM.createPortal(
-        <div role="tooltip" onClick={() => setOpen(false)} style={style}>
-          <div style={arrowStyle}/>
+    <div style={{ position: 'relative', display: 'inline-flex' }}>
+      <button ref={btnRef} onClick={handleToggle} style={{
+        appearance: 'none', background: 'transparent', border: 0, padding: 0,
+        color: 'var(--ink-400)', cursor: 'pointer',
+        display: 'inline-flex', alignItems: 'center',
+      }} aria-label="Why we need this">
+        <IconInfo size={14}/>
+      </button>
+      {open && (
+        <div role="tooltip" onClick={() => setOpen(false)} style={{
+          position: 'absolute', bottom: '140%',
+          ...(side === 'right' ? { left: -8 } : { right: -8 }),
+          zIndex: 10,
+          width: 175, padding: '10px 12px',
+          background: 'var(--ink-900)', color: '#F2EFE7',
+          borderRadius: 10, fontSize: 12, lineHeight: 1.45,
+          boxShadow: 'var(--shadow-lg)',
+          letterSpacing: '-0.005em',
+        }}>
+          <div style={{
+            position: 'absolute', bottom: -5,
+            ...(side === 'right' ? { left: 12 } : { right: 12 }),
+            width: 10, height: 10,
+            background: 'var(--ink-900)', transform: 'rotate(45deg)',
+          }}/>
           {label}
-        </div>,
-        document.body
+        </div>
       )}
-    </React.Fragment>
+    </div>
   );
 }
 
