@@ -7,7 +7,7 @@ function Screen4_Profile({ state, setState, onNext, onBack }) {
     { id: 'solar',  icon: <IconSolar size={16}/>,     label: 'Solar',           value: '8 panels · 3.2 kWp',       why: "We size trading volume based on your realistic surplus capacity." },
     { id: 'ev',     icon: <IconCar size={16}/>,       label: 'EV',              value: 'Tesla Model 3',            why: "So we can charge during cheap or green windows automatically." },
     { id: 'work',   icon: <IconBriefcase size={16}/>, label: 'Work pattern',    value: 'Home 3 days / week',       why: "Knowing when you're home helps us predict your load curve." },
-    { id: 'house',  icon: <IconPeople size={16}/>,    label: 'Household',       value: '2 adults',                 why: "Occupancy shapes heating and hot-water demand patterns." },
+    { id: 'house',  icon: <IconPeople size={16}/>,    label: 'Household',       value: '2 adults',                 why: "Occupancy shapes heating." },
   ];
 
   const saveEdit = (id, value) => {
@@ -125,7 +125,7 @@ function Screen4_Profile({ state, setState, onNext, onBack }) {
           <IconLock size={14}/>
         </div>
         <div>
-          This stays on your device. We only use it to optimize your trading.
+          This stays on your device. We only use it to optimise your trading.
         </div>
       </div>
 

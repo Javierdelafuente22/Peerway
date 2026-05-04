@@ -81,7 +81,7 @@ function Screen1_Postcode({ state, setState, onNext }) {
             borderRadius: 'var(--r-md)',
             fontSize: 13, lineHeight: 1.55, color: 'var(--ink-600)',
           }}>
-            Peer trading allows you to <span style={{ fontWeight: 600, color: 'var(--ink-900)' }}>buy and sell electricity with your neighbors at cheaper rates</span>. It lowers your bills while creating a <span style={{ fontWeight: 600, color: 'var(--ink-900)' }}>cleaner, more resilient energy grid</span>. Peerway <span style={{ fontWeight: 600, color: 'var(--ink-900)' }}>automates</span> this process, finding the best trades that match your household's needs.
+            Peer trading allows you to <span style={{ fontWeight: 600, color: 'var(--ink-900)' }}>buy and sell electricity with your neighbors at cheaper rates</span>. It lowers your bills while creating a cleaner, more resilient energy grid. Peerway automates this process, finding the best trades that match your household's needs.
           </div>
         )}
       </div>

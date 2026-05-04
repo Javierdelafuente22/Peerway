@@ -101,7 +101,7 @@ function PwPageTitle({ eyebrow, title, subtitle, size = 32 }) {
   return (
     <div style={{ marginTop: 12, marginBottom: 24 }}>
       {eyebrow && (
-        <div className="t-label" style={{ fontSize: 12, color: 'var(--lime-600)', marginBottom: 10 }}>
+        <div className="t-label" style={{ fontSize: 13, color: 'var(--lime-600)', marginBottom: 10 }}>
           {eyebrow}
         </div>
       )}
@@ -114,7 +114,7 @@ function PwPageTitle({ eyebrow, title, subtitle, size = 32 }) {
       {subtitle && (
         <p className="t-body" style={{
           fontSize: 15, lineHeight: 1.45, color: 'var(--ink-600)', margin: 0,
-          maxWidth: 320,
+          maxWidth: 360,
         }}>
           {subtitle}
         </p>
