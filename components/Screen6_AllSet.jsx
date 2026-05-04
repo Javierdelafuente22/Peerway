@@ -23,7 +23,7 @@ function Screen6_AllSet({ onNext, onBack }) {
         }}>
           {[
             { num: '47',  unit: 'neighbors' },
-            { num: '£22', unit: 'savings' },
+            { num: '42', unit: 'savings' },
             { num: '32%', unit: 'green mix' },
           ].map((s, i) => (
             <div key={i} style={{

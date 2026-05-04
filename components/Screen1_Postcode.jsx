@@ -22,7 +22,7 @@ function Screen1_Postcode({ state, setState, onNext }) {
       <PwPageTitle
         eyebrow="Step 1 — Your energy community"
         title="Welcome to Peerway, Sarah."
-        subtitle="You have been securely redirected from your Octopus online account. Your postcode helps us confirm who you can trade energy with."
+        subtitle="You have been securely redirected from your Octopus online account. You are a few steps away from sharing energy with your neighbours."
         size={34}
       />
 

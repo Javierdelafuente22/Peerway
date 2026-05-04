@@ -11,25 +11,19 @@ function Screen5_Legal({ onNext, onBack }) {
       content: (
         <div>
           <p style={{ marginTop: 0 }}>
-            <strong>What Peerway does.</strong> Peerway is a platform that matches households who generate surplus solar electricity with nearby neighbours who want to buy it at a cheaper rate than the grid. We act as a technology intermediary — we are not your energy supplier and do not replace them.
+            <strong>What Peerway does.</strong> Peerway matches households with surplus solar electricity with nearby neighbours who want cheaper and cleaner energy. We are a technology platform — not your energy supplier. Your supplier stays the same, and all energy flows through the national grid as normal.
           </p>
           <p>
-            <strong>Your supplier stays the same.</strong> All energy continues to flow through the national grid and is settled through your existing supplier (e.g. Octopus Energy). Peerway coordinates the commercial matching and billing adjustments — your lights stay on regardless.
+            <strong>Automated trading.</strong> Once you opt in, Peerway automatically matches your surplus or consumption with local peers. You can pause or stop at any time — no effort, no exit fees, no minimum term.
           </p>
           <p>
-            <strong>Automated trading.</strong> Once you opt in, Peerway automatically matches your surplus generation or consumption with peers in your local area. You can pause or stop trading at any time from your profile settings. No lock-in, no exit fees, no minimum term.
+            <strong>Pricing.</strong> Trades settle at rates between the grid export rate and the standard import rate — sellers earn more, buyers pay less. Peerway takes a small fee per trade only from your retailer.
           </p>
           <p>
-            <strong>Pricing.</strong> Peer trades are settled at rates between the grid export rate and the standard import rate — meaning sellers earn more and buyers pay less than they would on a standard tariff. Peerway takes a small platform fee (shown transparently in your dashboard). Rates may vary with market conditions.
-          </p>
-          <p>
-            <strong>Regulatory basis.</strong> Peerway operates under Ofgem's regulatory framework for peer-to-peer energy trading. Smart meter data is accessed via your supplier's authorised API under the Smart Energy Code (SEC). We comply with all applicable provisions of the Electricity Act 1989 and the Energy Act 2023.
-          </p>
-          <p>
-            <strong>Liability.</strong> Peerway is not liable for interruptions to your energy supply, which remains the responsibility of your licensed supplier and your distribution network operator (DNO). We are liable for the accuracy of trade matching and billing within the platform.
+            <strong>Regulatory basis.</strong> Peerway operates under Ofgem's framework for peer-to-peer trading. Smart meter data is accessed via your supplier's authorised API under the Smart Energy Code (SEC). We comply with the Electricity Act 1989 and Energy Act 2023.
           </p>
           <p style={{ marginBottom: 0 }}>
-            <strong>Changes to these terms.</strong> We will notify you by email and in-app at least 30 days before any material change to these terms takes effect. You can reject changes by closing your account at any time.
+            <strong>Changes to these terms.</strong> We will notify you at least 30 days before any material change. You can reject changes by closing your account at any time.
           </p>
         </div>
       ),
@@ -41,25 +35,22 @@ function Screen5_Legal({ onNext, onBack }) {
       content: (
         <div>
           <p style={{ marginTop: 0 }}>
-            <strong>What we collect.</strong> Your name, email, postcode, smart meter MPAN, half-hourly consumption and generation readings, and basic household profile (e.g. whether you have solar panels or an EV). We do not collect financial details — billing is handled by your energy supplier.
+            <strong>What we access.</strong> Your name, email, postcode, smart meter MPAN, half-hourly consumption and generation readings, and basic household profile. We do not collect financial details — billing is handled by your supplier.
           </p>
           <p>
-            <strong>Why we collect it.</strong> To match you with trading peers, calculate your savings, and settle trades accurately. Each piece of data has a specific, stated purpose — we do not collect anything speculatively.
+            <strong>Why.</strong> To match you with peers, calculate savings, and settle trades. Each piece of data has a specific purpose — we do not collect anything speculatively.
           </p>
           <p>
-            <strong>Lawful basis.</strong> We process your data under Article 6(1)(b) of the UK GDPR (performance of a contract) for core trading functions, and Article 6(1)(a) (consent) for optional features like community benchmarking. You can withdraw consent for optional features at any time without affecting the core service.
+            <strong>Lawful basis.</strong> We process data under UK GDPR Article 6(1)(b) (contract performance) for core trading, and Article 6(1)(a) (consent) for other features like community benchmarking.
           </p>
           <p>
-            <strong>Where it is stored.</strong> All personal data is stored on servers located in the United Kingdom. We do not transfer your data outside the UK. If this ever changes, we will obtain your explicit consent first and ensure adequate protections are in place as required by the UK GDPR (Chapter V).
+            <strong>Storage.</strong> All data is stored in the UK, and is not transfered abroad. We never sell or share your data for marketing.
           </p>
           <p>
-            <strong>Who has access.</strong> Only Peerway staff who need your data to operate the service can access it. We do not sell, rent, or share your personal data with third parties for marketing purposes. Your energy supplier receives only the trade settlement data necessary to adjust your bill.
-          </p>
-          <p>
-            <strong>How long we keep it.</strong> We retain your trading data for 6 years after your last transaction (aligned with HMRC record-keeping requirements). If you delete your account, personal identifiers are removed within 30 days; anonymised trading records are kept for regulatory compliance.
+            <strong>Retention.</strong> Trading data is kept for 6 years after your last transaction (per HMRC requirements). If you delete your account, personal (non-trading) details are removed within 30 days.
           </p>
           <p style={{ marginBottom: 0 }}>
-            <strong>Your rights under the UK GDPR.</strong> You have the right to access, rectify, restrict processing of, and port your personal data. You also have the right to object to processing and to lodge a complaint with the Information Commissioner's Office (ICO) at <span style={{ fontWeight: 500 }}>ico.org.uk</span>. See the section below on erasure for deletion rights.
+            <strong>Your rights.</strong> Under the UK GDPR you can access, rectify, restrict, port, or object to processing of your data. You can also complain to the ICO at <span style={{ fontWeight: 500 }}>ico.org.uk</span>.
           </p>
         </div>
       ),
@@ -74,16 +65,16 @@ function Screen5_Legal({ onNext, onBack }) {
             <strong>Your right.</strong> Under Article 17 of the UK GDPR, you have the right to request the deletion of all personal data we hold about you. We honour this without requiring a reason.
           </p>
           <p>
-            <strong>How to request it.</strong> Go to Profile → Your Data (GDPR) → Delete my account, or email <span style={{ fontWeight: 500 }}>privacy@peerway.co.uk</span>. We will confirm receipt within 48 hours and complete the deletion within 30 calendar days, as required by UK GDPR Article 12(3).
+            <strong>How to request it.</strong> Go to Profile → Your Data (GDPR) → Delete my account, or email <span style={{ fontWeight: 500 }}>privacy@peerway.co.uk</span>. We will confirm receipt within 3-5 business days and complete the deletion within 30 calendar days, as required by UK GDPR Article 12(3).
           </p>
           <p>
-            <strong>What gets deleted.</strong> Your name, email, postcode, meter details, household profile, and all personally identifiable trading history. Your account and all associated data are permanently and irreversibly removed from our systems and any backups within the 30-day window.
+            <strong>What gets deleted.</strong> Your name, email, postcode, meter details, household profile, and all personally identifiable details.
           </p>
           <p>
-            <strong>What we may retain.</strong> We are legally required to keep certain anonymised, non-identifiable records for regulatory and tax compliance (e.g. aggregated settlement data required by Ofgem and HMRC). These records cannot be linked back to you in any way.
+            <strong>What we may retain.</strong> We are legally required to keep certain anonymised, non-identifiable records for regulatory and tax compliance (e.g. aggregated settlement data required by Ofgem and HMRC).
           </p>
           <p style={{ marginBottom: 0 }}>
-            <strong>Data portability.</strong> Before deleting your account, you can export your full trading history, consumption data, and savings records in a standard machine-readable format (CSV) from Profile → Your Data → Export. This is your right under Article 20 of the UK GDPR.
+            <strong>Data portability.</strong> Before deleting your account, you can export your full trading history in a standard machine-readable format (CSV) from Profile → Your Data → Export. This is your right under Article 20 of the UK GDPR.
           </p>
         </div>
       ),

@@ -1,7 +1,7 @@
 // Screen 3 — Savings reveal
 function Screen3_Savings({ state, onNext, onBack }) {
   const [showCalc, setShowCalc] = React.useState(false);
-  const [lo, hi] = [180, 340];
+  const [lo, hi] = [285, 550];
   const [loAnim, setLoAnim] = React.useState(0);
   const [hiAnim, setHiAnim] = React.useState(0);
 
@@ -24,7 +24,7 @@ function Screen3_Savings({ state, onNext, onBack }) {
       <PwPageTitle
         eyebrow="Step 2 — Your numbers"
         title="You could save this much."
-        subtitle={`Estimated range per year for homes like yours in ${state.area || 'Fulham'}.`}
+        subtitle={`Estimated range per year for homes like yours in ${state.area || 'Fulham'}. Range reflects weather, price and consumption variability.`}
         size={32}
       />
       <div>
@@ -70,10 +70,10 @@ function Screen3_Savings({ state, onNext, onBack }) {
           </div>
 
           {[
-            { label: 'Standard tariff', value: 1420, color: 'var(--cream-200)', highlight: false },
-            { label: 'With Peerway',    value: 1160, color: 'var(--lime-500)', highlight: true, savings: 'save £260' },
+            { label: 'Standard tariff', value: 1640, color: 'var(--cream-200)', highlight: false },
+            { label: 'With Peerway',    value: 1250, color: 'var(--lime-500)', highlight: true, savings: 'save £390' },
           ].map((row, i) => {
-            const max = 1420;
+            const max = 1640;
             const pct = (row.value / max) * 100;
             return (
               <div key={i} style={{
@@ -160,19 +160,19 @@ function Screen3_Savings({ state, onNext, onBack }) {
               display: 'grid', gridTemplateColumns: '1fr auto', gap: '8px 16px',
               fontSize: 13,
             }}>
-              <span style={{ color: 'var(--ink-600)' }}>Avg. Fulham prosumer surplus</span>
-              <span className="t-num" style={{ color: 'var(--ink-900)' }}>2,850 kWh</span>
-              <span style={{ color: 'var(--ink-600)' }}>Peer rate vs. grid export</span>
-              <span className="t-num" style={{ color: 'var(--lime-600)', fontWeight: 600 }}>+7.2p / kWh</span>
-              <span style={{ color: 'var(--ink-600)' }}>EV off-peak shifting</span>
-              <span className="t-num" style={{ color: 'var(--lime-600)', fontWeight: 600 }}>–£84 / yr</span>
+              <span style={{ color: 'var(--ink-600)' }}>Avg. household consumption</span>
+              <span className="t-num" style={{ color: 'var(--ink-900)' }}>9300 kWh</span>
+              <span style={{ color: 'var(--ink-600)' }}>Avg. import price </span>
+              <span className="t-num" style={{ color: 'var(--lime-600)', fontWeight: 600 }}>+17.6p / kWh</span>
+              <span style={{ color: 'var(--ink-600)' }}>Peerway's avg. savings</span>
+              <span className="t-num" style={{ color: 'var(--lime-600)', fontWeight: 600 }}>24%</span>
             </div>
             <div style={{
               marginTop: 10, paddingTop: 10,
               borderTop: '1px solid var(--cream-200)',
               fontSize: 12, color: 'var(--ink-400)',
             }}>
-              Range reflects weather and EV usage variability.
+              Data provided by British Gas and Peerway's simulations.
             </div>
           </div>
         )}
