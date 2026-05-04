@@ -5,7 +5,7 @@ function DashboardTab() {
   const data = {
     week:  { saved: 8.40,  savedTrend: '+12% vs last week', co2: 14.2,  kwh: 38,  pct: 23, benchmark: 'Fulham average', comparisonUp: true },
     month: { saved: 38.20, savedTrend: '+18% vs last month', co2: 62.8,  kwh: 168, pct: 29, benchmark: 'Fulham average', comparisonUp: true },
-    year:  { saved: 284.60, savedTrend: 'on track for £340', co2: 540.1, kwh: 1420, pct: 14, benchmark: 'Top of community', comparisonUp: true },
+    year:  { saved: 284.60, savedTrend: 'on track for £440', co2: 540.1, kwh: 1420, pct: 14, benchmark: 'Top of community', comparisonUp: true },
   }[window];
 
   // Animated count-up for hero £ figure
@@ -185,7 +185,7 @@ function DashboardTab() {
           <InsightCard
             day="Wed"
             icon="🌧"
-            title="Quiet week — rainy, but you still saved £3.20 vs. standard tariff"
+            title="Quiet week — rainy, but you still saved £2.20 vs. standard tariff"
             detail="Battery covered 68% of evening peak"
             accent="neutral"
           />
@@ -193,14 +193,14 @@ function DashboardTab() {
             day="Tue"
             icon="🏘"
             title="You traded with 3 homes and a farm today"
-            detail="Anonymized · routed via local grid node"
+            detail="9.5 kWh sent at noon while you were away"
             accent="lime"
           />
           <InsightCard
             day="Mon"
             icon="⚡"
             title="Peak shift: EV charged 2am–5am, saved £0.84"
-            detail="Grid carbon intensity: 89g CO₂/kWh — green window"
+            detail="Took advantage of a cheap rate window"
             accent="neutral"
           />
         </div>

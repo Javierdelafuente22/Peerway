@@ -18,7 +18,7 @@ function CommunityTab() {
       <TabHeader
         eyebrow="Community"
         title="Your peers"
-        subtitle="Anonymised peers trading within 0.8 miles of you." />
+        subtitle="Anonymised peers trading within one km of your location." />
       
 
       <div style={{ padding: '0 0 120px' }}>
@@ -84,14 +84,14 @@ function CommunityTab() {
               <span className="t-num" style={{
                 fontSize: 36, lineHeight: 1, color: '#fff',
                 letterSpacing: '-0.04em', fontWeight: 600
-              }}>12</span>
+              }}>800</span>
               <span style={{ fontSize: 16, color: 'rgba(255,255,255,0.7)', fontWeight: 500 }}>kg CO2 offset</span>
             </div>
             <div style={{
               fontSize: 13, color: 'rgba(255,255,255,0.75)',
               lineHeight: 1.4, textWrap: 'pretty'
             }}>
-              Equivalent to a <span style={{ color: 'var(--lime-400)', fontWeight: 600 }}>London → Edinburgh</span> train trip — for the whole community.
+              Equivalent to a <span style={{ color: 'var(--lime-400)', fontWeight: 600 }}>London → Edinburgh</span> train trip for everyone in the community.
             </div>
 
             {/* Decorative sparkline */}

@@ -15,7 +15,7 @@ function HouseTab() {
 
   const scene = {
     solarKw: 3.8, useKw: 1.2, surplus: 2.6,
-    caption: 'You are generating more than you use. The extra is powering 2 neighbors.',
+    caption: 'You are generating more than you use. The extra is powering 2 neighbours.',
   };
 
   return (
