@@ -27,21 +27,28 @@ function AssistantTab() {
     const rec = new SR();
     rec.lang = 'en-GB';
     rec.interimResults = true;
-    rec.continuous = false;
+    rec.continuous = true;
 
     let finalText = '';
     rec.onresult = (e) => {
       let interim = '';
       for (let i = e.resultIndex; i < e.results.length; i++) {
         const r = e.results[i];
-        if (r.isFinal) finalText += r[0].transcript;
+        if (r.isFinal) finalText += r[0].transcript + ' ';
         else interim += r[0].transcript;
       }
       setInput((finalText + interim).trim());
     };
     rec.onerror = () => setListening(false);
-    rec.onend = () => setListening(false);
+    // Don't auto-stop on silence — user controls via tap
+    rec.onend = () => {
+      // Browser may force-stop after silence; restart if still in listening mode
+      if (recognitionRef.current && recognitionRef.current._keepAlive) {
+        try { rec.start(); } catch (e) {}
+      }
+    };
 
+    rec._keepAlive = true;
     recognitionRef.current = rec;
     setListening(true);
     rec.start();
@@ -49,6 +56,7 @@ function AssistantTab() {
 
   const stopListening = () => {
     if (recognitionRef.current) {
+      recognitionRef.current._keepAlive = false;
       try { recognitionRef.current.stop(); } catch (e) {}
     }
     setListening(false);
@@ -80,7 +88,7 @@ function AssistantTab() {
     const t = text.toLowerCase();
 
     // 1) HOLIDAY / TRAVEL / AWAY
-    if (/\b(holiday|holidays|vacation|away|trip|travel|travelling|traveling|out of town|paris|spain|abroad|weekend away)\b/.test(t)) {
+    if (/\b(holiday|holidays|vacation|away|trip|travel|travelling|traveling|out of town|paris|spain|abroad|weekend away|going away|not home|not around|leaving town|leaving home|be away|be out|gone for|gone all|few days off|days off|week off|time off|flying|flight|airport|staying at|visiting|won't be home|won't be in|not in today|not in tomorrow|not back|back on|return on|gone until|empty house|house.?sit|nobody home|no one home|mum'?s|mom'?s|parents|friend'?s|bnb|airbnb|hotel|hostel|camping|festival|wedding|break|getaway|ski|beach|city break)\b/.test(t)) {
       return {
         role: 'ai', type: 'plan', ts: 'now',
         summary: "Got it — sounds like you'll be away. Here's my plan:",
@@ -95,8 +103,8 @@ function AssistantTab() {
     }
 
     // 2) WORK SCHEDULE — WFH or office days
-    if (/\b(work from home|working from home|wfh|home office|home all day|in the office|at the office|going to work|commute|commuting|workday|work schedule|office today|office tomorrow|in office)\b/.test(t)) {
-      const office = /\b(office|going to work|commute|commuting|in office)\b/.test(t);
+    if (/\b(work from home|working from home|wfh|home office|home all day|in the office|at the office|going to work|commute|commuting|workday|work schedule|office today|office tomorrow|in office|heading to work|heading in|going in|at work|working today|working tomorrow|9 to 5|nine to five|hybrid|remote|on site|on-?site|staying home|home today|home tomorrow|day off|not working|working late|early start|late start|back from work|finishing early|leaving work|leave work|start at|finish at|shifts?|night shift|morning shift)\b/.test(t)) {
+      const office = /\b(office|going to work|commute|commuting|in office|heading to work|heading in|going in|at work|on site|on-?site|9 to 5|nine to five)\b/.test(t);
       if (office) {
         return {
           role: 'ai', type: 'plan', ts: 'now',
@@ -123,7 +131,7 @@ function AssistantTab() {
     }
 
     // 3) EV CHARGING
-    if (/\b(ev|electric vehicle|car|tesla|model [3sxy]|charge|charging|charger|plug in|plug it in)\b/.test(t)) {
+    if (/\b(ev|electric vehicle|car|tesla|model [3sxy]|charge|charging|charger|plug in|plug it in|plugged in|top up|top it up|juice|range|miles|battery.?low|need.?charge|full.?charge|charge.?full|ready.?by|ready.?for|drive|driving|road trip|long drive|motorway|need the car|using the car|taking the car)\b/.test(t)) {
       // Try to extract a target time like "by 7am" or "by 8:30"
       const timeMatch = t.match(/by\s+(\d{1,2})(?::(\d{2}))?\s*(am|pm)?/);
       const targetTime = timeMatch ? timeMatch[0].replace('by ', '') : '7am';
