@@ -1,11 +1,12 @@
 // Dashboard — default landing tab. "Did I save money?"
 function DashboardTab() {
   const [window, setWindow] = React.useState('week'); // 'week' | 'month' | 'year'
+  const [trustOpen, setTrustOpen] = React.useState(false);
 
   const data = {
-    week:  { saved: 8.40,  savedTrend: '+12% vs last week', co2: 14.2,  kwh: 38,  pct: 23, benchmark: 'Fulham average', comparisonUp: true },
-    month: { saved: 38.20, savedTrend: '+18% vs last month', co2: 62.8,  kwh: 168, pct: 29, benchmark: 'Fulham average', comparisonUp: true },
-    year:  { saved: 284.60, savedTrend: 'on track for £440', co2: 540.1, kwh: 1420, pct: 14, benchmark: 'Top of community', comparisonUp: true },
+    week:  { saved: 8.40,  savedTrend: '+12% vs last week', co2: 14.2,  kwh: 38,  insight: '23% better than Fulham average' },
+    month: { saved: 38.20, savedTrend: '+18% vs last month', co2: 62.8,  kwh: 168, insight: '29% better than Fulham average' },
+    year:  { saved: 284.60, savedTrend: 'On track for £440', co2: 540.1, kwh: 1420, insight: "You're top 3 in your community" },
   }[window];
 
   // Animated count-up for hero £ figure
@@ -81,7 +82,7 @@ function DashboardTab() {
 
         {/* Hero — money saved */}
         <div style={{ marginBottom: 28 }}>
-          <div className="t-label" style={{ color: 'var(--ink-400)', marginBottom: 10 }}>
+          <div className="t-label" style={{ color: 'var(--ink-400)', marginBottom: 10, fontSize: 12 }}>
             Saved this {window}
           </div>
           <div style={{
@@ -125,7 +126,7 @@ function DashboardTab() {
           <MetricCard icon={<IconBolt size={12}/>} label="kWh traded" value={data.kwh} unit="kWh"/>
         </div>
 
-        {/* Comparative badge — critical contextual anchor */}
+        {/* Comparative badge — no arrow, no subtitle */}
         <div style={{
           padding: '14px 16px', marginBottom: 28,
           background: 'var(--ink-900)', color: '#fff',
@@ -142,18 +143,9 @@ function DashboardTab() {
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontSize: 14, fontWeight: 600, color: '#fff' }}>
-              {data.pct}% better than {data.benchmark}
-            </div>
-            <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)', marginTop: 1 }}>
-              You're in the top 30% of your community
+              {data.insight}
             </div>
           </div>
-          <button style={{
-            appearance: 'none', border: 0, background: 'transparent',
-            color: 'rgba(255,255,255,0.5)', cursor: 'pointer',
-          }}>
-            <IconChevron size={14}/>
-          </button>
         </div>
 
         {/* Insights feed */}
@@ -200,25 +192,48 @@ function DashboardTab() {
             day="Mon"
             icon="⚡"
             title="Peak shift: EV charged 2am–5am, saved £0.84"
-            detail="Took advantage of a cheap rate window"
+            detail="We took advantage of a cheap rate window"
             accent="neutral"
           />
         </div>
 
-        {/* Footer trust anchor */}
-        <div style={{
-          marginTop: 24, padding: '12px 14px',
-          background: 'var(--surface)',
-          border: '1px solid var(--cream-200)',
-          borderRadius: 'var(--r-md)',
-          display: 'flex', alignItems: 'center', gap: 10,
-          fontSize: 12, color: 'var(--ink-600)',
-        }}>
-          <IconShield size={14}/>
-          <span style={{ flex: 1 }}>
-            You're never worse off than your standard tariff.
-          </span>
-          <IconInfo size={14}/>
+        {/* Footer trust anchor — expandable */}
+        <div style={{ marginTop: 24 }}>
+          <button onClick={() => setTrustOpen(o => !o)} style={{
+            appearance: 'none', border: '1px solid var(--cream-200)',
+            background: 'var(--surface)',
+            borderRadius: trustOpen ? 'var(--r-md) var(--r-md) 0 0' : 'var(--r-md)',
+            padding: '12px 14px',
+            display: 'flex', alignItems: 'center', gap: 10,
+            fontSize: 12, color: 'var(--ink-600)',
+            width: '100%', textAlign: 'left', cursor: 'pointer',
+            fontFamily: 'var(--font-sans)',
+            transition: 'border-radius .15s',
+          }}>
+            <IconShield size={14}/>
+            <span style={{ flex: 1 }}>
+              You're never worse off than your standard tariff.
+            </span>
+            <div style={{
+              transform: `rotate(${trustOpen ? 90 : 0}deg)`,
+              transition: 'transform .22s ease',
+              color: 'var(--ink-400)',
+            }}>
+              <IconChevron size={12}/>
+            </div>
+          </button>
+          {trustOpen && (
+            <div className="pw-fade-in" style={{
+              padding: '14px 16px',
+              background: 'var(--surface)',
+              border: '1px solid var(--cream-200)',
+              borderTop: 0,
+              borderRadius: '0 0 var(--r-md) var(--r-md)',
+              fontSize: 13, lineHeight: 1.55, color: 'var(--ink-600)',
+            }}>
+              Trading with peers means <span style={{ fontWeight: 600, color: 'var(--ink-900)' }}>you buy for less and sell for more</span>. For example, instead of buying electricity at 20p per kWh and selling for 10p, peers trade at 15p. Here, buyers save 5p and sellers make 5p more per kWh versus a standard grid tariff.
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -238,7 +253,7 @@ function MetricCard({ icon, label, value, unit }) {
         color: 'var(--ink-400)', marginBottom: 8,
       }}>
         {icon}
-        <span className="t-label">{label}</span>
+        <span className="t-label" style={{ fontSize: 12 }}>{label}</span>
       </div>
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
         <span className="t-num" style={{

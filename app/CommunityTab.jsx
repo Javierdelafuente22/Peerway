@@ -18,7 +18,7 @@ function CommunityTab() {
       <TabHeader
         eyebrow="Community"
         title="Your peers"
-        subtitle="Anonymised peers trading within one km of your location." />
+        subtitle="Anonymised peers trading within one km of you." />
       
 
       <div style={{ padding: '0 0 120px' }}>
@@ -74,7 +74,7 @@ function CommunityTab() {
             borderRadius: 'var(--r-lg)',
             position: 'relative', overflow: 'hidden'
           }}>
-            <div className="t-label" style={{ color: 'rgba(255,255,255,0.5)', marginBottom: 8 }}>
+            <div className="t-label" style={{ color: 'rgba(255,255,255,0.5)', marginBottom: 8, fontSize: 12 }}>
               Collective impact this month
             </div>
             <div style={{
@@ -96,7 +96,7 @@ function CommunityTab() {
 
             {/* Decorative sparkline */}
             <svg viewBox="0 0 120 30" width="120" height="30"
-            style={{ position: 'absolute', right: 16, top: 16, opacity: 0.35 }}>
+            style={{ position: 'absolute', right: 16, top: 45, opacity: 0.35 }}>
               <path d="M0,22 L15,18 L30,14 L45,18 L60,10 L75,14 L90,6 L105,9 L120,4"
               fill="none" stroke="var(--lime-400)" strokeWidth="1.5"
               strokeLinecap="round" strokeLinejoin="round" />
@@ -106,7 +106,7 @@ function CommunityTab() {
 
         {/* Trading breakdown */}
         <div style={{ padding: '20px 24px 0' }}>
-          <div className="t-label" style={{ color: 'var(--ink-400)', marginBottom: 12 }}>
+          <div className="t-label" style={{ color: 'var(--ink-400)', marginBottom: 12, fontSize: 12 }}>
             This month you've traded with
           </div>
           <div style={{
@@ -130,7 +130,7 @@ function CommunityTab() {
               display: 'flex', justifyContent: 'space-between',
               marginBottom: 12, alignItems: 'baseline'
             }}>
-              <span className="t-label" style={{ color: 'var(--ink-400)' }}>
+              <span className="t-label" style={{ color: 'var(--ink-400)', fontSize: 12 }}>
                 Community composition
               </span>
               <span style={{ fontSize: 11, color: 'var(--ink-600)', fontFamily: 'var(--font-mono)' }}>

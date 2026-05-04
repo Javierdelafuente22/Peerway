@@ -4,7 +4,7 @@ function AssistantTab() {
   {
     role: 'ai',
     type: 'greeting',
-    text: "Hi Sarah — I'm your trading agent. I keep an eye on prices all day and trade your surplus to earn you a bit extra. Tell me about your week and I'll plan around it.",
+    text: "Hi Sarah — I'm your trading agent. I keep an eye on prices and trade your surplus to earn you a bit extra. Tell me about your week and I'll plan around it, or enable smarter intelligence with the top right button.",
     ts: '9:42am'
   }]
   );

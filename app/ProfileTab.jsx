@@ -3,7 +3,185 @@ function ProfileTab() {
   const [paused, setPaused] = React.useState(false);
   const [digest, setDigest] = React.useState(true);
   const [goodDay, setGoodDay] = React.useState(true);
-  const [delConfirm, setDelConfirm] = React.useState(0); // 0 | 1 | 2
+  const [delConfirm, setDelConfirm] = React.useState(0);
+  const [openPanel, setOpenPanel] = React.useState(null);
+  const [supportMsg, setSupportMsg] = React.useState('');
+  const [supportSent, setSupportSent] = React.useState(false);
+
+  const downloadCsv = () => {
+    const header = 'Date,Time,Type,kWh,Rate (p/kWh),Counterparty,Grid Equiv Rate (p/kWh),Saving (£),CO2 Saved (kg)';
+    const rows = [
+      '2026-04-28,10:30,Export,2.4,18.5,Peer #12,5.5,0.31,0.98',
+      '2026-04-28,11:00,Export,1.8,18.5,Peer #07,5.5,0.23,0.74',
+      '2026-04-28,14:15,Export,3.1,17.2,Peer #23,5.5,0.36,1.27',
+      '2026-04-27,09:45,Export,1.2,18.5,Peer #12,5.5,0.16,0.49',
+      '2026-04-27,12:00,Export,2.8,17.8,Peer #31,5.5,0.34,1.15',
+      '2026-04-27,16:30,Import,1.5,22.4,Peer #09,24.0,0.02,0.00',
+      '2026-04-26,10:00,Export,3.6,18.5,Peer #07,5.5,0.47,1.47',
+      '2026-04-26,13:30,Export,2.2,17.2,Peer #45,5.5,0.26,0.90',
+      '2026-04-25,11:15,Export,1.9,18.5,Peer #12,5.5,0.25,0.78',
+      '2026-04-25,14:00,Export,2.7,17.8,Peer #23,5.5,0.33,1.10',
+      '2026-04-25,17:45,Import,2.1,21.8,Peer #31,24.0,0.05,0.00',
+      '2026-04-24,09:30,Export,3.4,18.5,Peer #09,5.5,0.44,1.39',
+      '2026-04-24,12:45,Export,1.6,17.2,Peer #07,5.5,0.19,0.65',
+      '2026-04-23,10:15,Export,2.9,18.5,Peer #45,5.5,0.38,1.19',
+      '2026-04-23,15:00,Import,1.8,22.4,Peer #12,24.0,0.03,0.00',
+      '2026-04-22,11:00,Export,2.5,17.8,Peer #23,5.5,0.31,1.02',
+      '2026-04-22,13:30,Export,3.0,18.5,Peer #31,5.5,0.39,1.23',
+      '2026-04-21,10:00,Export,1.4,17.2,Peer #09,5.5,0.16,0.57',
+      '2026-04-21,14:30,Export,2.6,18.5,Peer #07,5.5,0.34,1.06',
+      '2026-04-21,18:00,Import,1.3,21.8,Peer #45,24.0,0.03,0.00',
+    ];
+    const csv = header + '\n' + rows.join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'peerway-trading-history.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const panels = {
+    export: {
+      title: 'Export my data',
+      icon: <IconDownload size={14}/>,
+      content: (
+        <div>
+          <p style={{ marginTop: 0 }}>
+            Under Article 20 of the UK GDPR, you have the right to receive your personal data in a portable format. Your export will include:
+          </p>
+          <p>
+            <strong>Trading history</strong> — every peer trade, including timestamps, kWh amounts, rates, and counterparties (anonymised).
+          </p>
+          <p>
+            <strong>Consumption data</strong> — half-hourly smart meter readings as processed by Peerway.
+          </p>
+          <p>
+            <strong>Savings records</strong> — weekly and monthly summaries, including grid-comparison calculations.
+          </p>
+          <p style={{ marginBottom: 16 }}>
+            Files are delivered as CSV, ready to open in Excel or import into another service. The export typically takes a few seconds.
+          </p>
+          <button className="pw-btn" style={{ height: 48, fontSize: 14 }} onClick={downloadCsv}>
+            <IconDownload size={14}/>
+            <span>Download my data (.csv)</span>
+          </button>
+        </div>
+      ),
+    },
+    help: {
+      title: 'Help centre',
+      icon: <IconDoc size={14}/>,
+      content: (
+        <div>
+          <p style={{ marginTop: 0, fontWeight: 600, color: 'var(--ink-900)' }}>
+            Frequently asked questions (FAQs)
+          </p>
+          <p>
+            <strong>Can I choose who I trade with?</strong> No. All peers are anonymised — you never see names or addresses. Peerway matches you with the nearest available peers to minimise grid losses and maximise savings.
+          </p>
+          <p>
+            <strong>What happens during a power cut?</strong> Nothing changes. Supply is managed by your DNO and supplier. Peerway only handles the commercial layer.
+          </p>
+          <p>
+            <strong>Can the app be adversarily gamed?</strong> The algorithm is not accessible from the app, making manipulation highly unlikely. Moreover, trading automatically stops if you become worse-off versus grid tariffs.
+          </p>
+          <p>
+            <strong>What's coming next?</strong> We aim to allow you to maximise green energy mix, not just price. We also aim to add preferences for trading with specific infrastructure types (schools, community buildings, local businesses), while keeping data private.
+          </p>
+          <p style={{ marginBottom: 0 }}>
+            <strong>How do I delete my account?</strong> Scroll to the bottom of your Profile and tap "Delete my account." Data is erased within 30 days.
+          </p>
+        </div>
+      ),
+    },
+    contact: {
+      title: 'Contact support',
+      icon: <IconExternal size={12}/>,
+      content: (
+        <div>
+          <p style={{ marginTop: 0 }}>
+            Real humans in the UK. We typically reply within 4 hours during business days (Mon–Fri, 9am–6pm).
+          </p>
+          <div style={{ marginTop: 8 }}>
+            <label className="t-label" style={{ display: 'block', color: 'var(--ink-400)', marginBottom: 8, fontSize: 11 }}>
+              Your message
+            </label>
+            <textarea
+              value={supportMsg}
+              onChange={e => setSupportMsg(e.target.value)}
+              placeholder="Describe your issue or question..."
+              rows={4}
+              style={{
+                width: '100%', padding: '12px 14px',
+                borderRadius: 'var(--r-md)',
+                border: '1px solid var(--cream-200)',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 14, color: 'var(--ink-900)',
+                resize: 'vertical', outline: 'none',
+                boxSizing: 'border-box',
+                background: '#fff',
+              }}
+            />
+            <button
+              className="pw-btn"
+              style={{ height: 48, fontSize: 14, marginTop: 12 }}
+              disabled={!supportMsg.trim() || supportSent}
+              onClick={() => setSupportSent(true)}
+            >
+              {supportSent ? (
+                <React.Fragment>
+                  <IconCheck size={14}/>
+                  <span>Message sent</span>
+                </React.Fragment>
+              ) : (
+                <span>Send message</span>
+              )}
+            </button>
+            {supportSent && (
+              <p className="pw-fade-in" style={{
+                fontSize: 12, color: 'var(--ink-600)', marginTop: 10, lineHeight: 1.5,
+              }}>
+                We've received your message and will reply to your registered email within 4 hours.
+              </p>
+            )}
+          </div>
+        </div>
+      ),
+    },
+  };
+
+  // Detail panel view
+  if (openPanel && panels[openPanel]) {
+    const panel = panels[openPanel];
+    return (
+      <div className="pw-screen">
+        <TabHeader eyebrow="Profile" title={panel.title}/>
+        <div style={{ padding: '0 24px 120px' }}>
+          <button onClick={() => { setOpenPanel(null); setSupportSent(false); setSupportMsg(''); }} style={{
+            appearance: 'none', border: 0, background: 'transparent',
+            display: 'flex', alignItems: 'center', gap: 6,
+            color: 'var(--ink-700)', fontSize: 15, fontWeight: 500,
+            fontFamily: 'var(--font-sans)', cursor: 'pointer',
+            padding: '4px 0', marginBottom: 16,
+          }}>
+            <IconChevron dir="left" size={16}/>
+            <span>Back to profile</span>
+          </button>
+
+          <div style={{
+            fontSize: 14, lineHeight: 1.65, color: 'var(--ink-700)',
+            fontFamily: 'var(--font-sans)',
+          }}>
+            {panel.content}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="pw-screen">
@@ -11,6 +189,7 @@ function ProfileTab() {
 
       <div style={{ padding: '0 24px 120px' }}>
         {/* User card */}
+        <SectionLabel>Your details</SectionLabel>
         <div style={{
           background: 'var(--surface)',
           border: '1px solid var(--cream-200)',
@@ -72,7 +251,6 @@ function ProfileTab() {
             status="info"
             last={!paused}
           />
-          {/* Pause toggle */}
           <div style={{
             borderTop: '1px solid var(--cream-200)',
             padding: '14px 18px',
@@ -123,22 +301,7 @@ function ProfileTab() {
           />
         </div>
 
-        {/* Data rights */}
-        <SectionLabel>Your data (GDPR)</SectionLabel>
-        <div style={{
-          background: 'var(--surface)',
-          border: '1px solid var(--cream-200)',
-          borderRadius: 'var(--r-md)',
-          overflow: 'hidden',
-          marginBottom: 20,
-        }}>
-          <LinkRow icon={<IconDownload size={14}/>} title="Export my data" detail="Download everything as JSON"/>
-          <LinkRow icon={<IconPencil size={14}/>}   title="Rectify my data" detail="Fix something that's wrong"/>
-          <LinkRow icon={<IconLock size={14}/>}     title="Withdraw consent" detail="Revoke specific permissions"
-                   last/>
-        </div>
-
-        {/* Support */}
+        {/* Support — includes export */}
         <SectionLabel>Support</SectionLabel>
         <div style={{
           background: 'var(--surface)',
@@ -147,9 +310,9 @@ function ProfileTab() {
           overflow: 'hidden',
           marginBottom: 20,
         }}>
-          <LinkRow icon={<IconDoc size={14}/>} title="Help centre" detail="Guides, FAQs, troubleshooting"/>
-          <LinkRow icon={<IconExternal size={12}/>} title="Contact support" detail="Real humans · reply within 4h"
-                   last/>
+          <LinkRow icon={<IconDownload size={14}/>} title="Export my data" detail="Download everything as CSV" onClick={() => setOpenPanel('export')}/>
+          <LinkRow icon={<IconDoc size={14}/>} title="Help centre" detail="Guides, FAQs, troubleshooting" onClick={() => setOpenPanel('help')}/>
+          <LinkRow icon={<IconExternal size={12}/>} title="Contact support" detail="Real humans · reply within 4h" onClick={() => setOpenPanel('contact')} last/>
         </div>
 
         {/* Danger zone */}
@@ -202,7 +365,6 @@ function ProfileTab() {
           )}
         </div>
 
-        {/* Meta footer */}
         <div style={{
           marginTop: 24, fontSize: 10,
           color: 'var(--ink-400)',
@@ -223,6 +385,7 @@ function SectionLabel({ children, danger }) {
       color: danger ? '#D4524B' : 'var(--ink-400)',
       marginBottom: 8, marginTop: 4,
       padding: '0 4px',
+      fontSize: 12,
     }}>
       {children}
     </div>
@@ -235,7 +398,6 @@ function ProfileRow({ icon, label, value, last }) {
       padding: '14px 18px',
       display: 'flex', alignItems: 'center', gap: 12,
       borderTop: '1px solid var(--cream-200)',
-      borderBottom: last ? 0 : 0,
     }}>
       <div style={{
         width: 28, height: 28, borderRadius: 8,
@@ -253,12 +415,6 @@ function ProfileRow({ icon, label, value, last }) {
           {value}
         </div>
       </div>
-      <button style={{
-        appearance: 'none', border: 0, background: 'transparent',
-        color: 'var(--ink-400)', cursor: 'pointer',
-      }}>
-        <IconPencil size={12}/>
-      </button>
     </div>
   );
 }
@@ -282,12 +438,6 @@ function ConnectionRow({ title, subtitle, status, last }) {
           {subtitle}
         </div>
       </div>
-      <button style={{
-        appearance: 'none', border: 0, background: 'transparent',
-        color: 'var(--ink-400)', cursor: 'pointer',
-      }}>
-        <IconChevron size={14}/>
-      </button>
     </div>
   );
 }
@@ -320,14 +470,15 @@ function ToggleRow({ icon, title, detail, on, onChange, last }) {
   );
 }
 
-function LinkRow({ icon, title, detail, last }) {
+function LinkRow({ icon, title, detail, last, onClick }) {
   return (
-    <button style={{
+    <button onClick={onClick} style={{
       appearance: 'none', border: 0, background: 'transparent',
       width: '100%', padding: '14px 18px',
       display: 'flex', alignItems: 'center', gap: 12,
       textAlign: 'left', cursor: 'pointer',
       borderBottom: last ? 0 : '1px solid var(--cream-200)',
+      fontFamily: 'var(--font-sans)',
     }}>
       <div style={{
         width: 32, height: 32, borderRadius: 10,

@@ -30,7 +30,7 @@ function Screen5_Legal({ onNext, onBack }) {
     },
     {
       label: 'Your data',
-      desc: "What we collect, why, and where it's stored (UK only).",
+      desc: "What we collect, why, and where it's stored.",
       icon: <IconShield size={14}/>,
       content: (
         <div>
@@ -57,7 +57,7 @@ function Screen5_Legal({ onNext, onBack }) {
     },
     {
       label: 'Right to erasure',
-      desc: 'Delete everything at any time, no questions asked.',
+      desc: 'How to delete everything at any time, with no questions asked.',
       icon: <IconTrash size={14}/>,
       content: (
         <div>

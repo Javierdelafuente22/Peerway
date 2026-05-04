@@ -64,7 +64,7 @@ function HouseTab() {
 
         {/* Live readouts */}
         <div style={{ padding: '20px 24px 0' }}>
-          <div className="t-label" style={{ color: 'var(--ink-400)', marginBottom: 12 }}>
+          <div className="t-label" style={{ color: 'var(--ink-400)', marginBottom: 12, fontSize: 12 }}>
             Live readouts
           </div>
           <div style={{
@@ -93,11 +93,11 @@ function Readout({ icon, label, value, unit, accent }) {
         color: accent ? 'var(--lime-600)' : 'var(--ink-400)', marginBottom: 6,
       }}>
         {icon}
-        <span className="t-label" style={{ fontSize: 9 }}>{label}</span>
+        <span className="t-label" style={{ fontSize: 11 }}>{label}</span>
       </div>
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 2 }}>
         <span className="t-num" style={{
-          fontSize: 18, color: 'var(--ink-900)', fontWeight: 600,
+          fontSize: 19, color: 'var(--ink-900)', fontWeight: 600,
           letterSpacing: '-0.03em',
         }}>{value}</span>
         <span style={{ fontSize: 10, color: 'var(--ink-400)', fontWeight: 500 }}>{unit}</span>
@@ -107,9 +107,7 @@ function Readout({ icon, label, value, unit, accent }) {
 }
 
 // Layout: SUN top-center, HOUSE middle-center, GRID bottom-left, COMMUNITY bottom-right.
-// Flows: sun → home, home → community ONLY.
 function HouseScene({ tick }) {
-  // Equal-spaced base nodes for grid + community
   const HOUSE_X = 180, HOUSE_Y = 175;
   const GRID_X = 90,  GRID_Y = 290;
   const COMM_X = 270, COMM_Y = 290;
@@ -133,10 +131,8 @@ function HouseScene({ tick }) {
         </linearGradient>
       </defs>
 
-      {/* Ground hint */}
       <line x1="0" y1="320" x2="360" y2="320" stroke="rgba(0,168,98,0.15)" strokeWidth="1" strokeDasharray="2 4"/>
 
-      {/* SUN */}
       <g>
         <circle cx={SUN_X} cy={SUN_Y} r="44" fill="url(#sunGlow)"/>
         <circle cx={SUN_X} cy={SUN_Y} r="20" fill="#FFC94A"/>
@@ -153,7 +149,6 @@ function HouseScene({ tick }) {
         <NodeLabel x={SUN_X} y={SUN_Y + 64} text=""/>
       </g>
 
-      {/* HOUSE — center */}
       <g transform={`translate(${HOUSE_X - 40}, ${HOUSE_Y - 40})`}>
         <ellipse cx="40" cy="92" rx="50" ry="4" fill="rgba(0,0,0,0.12)"/>
         <rect x="5" y="40" width="70" height="50" fill="#F7F3E8" stroke="#E4E0D4" strokeWidth="1"/>
@@ -170,7 +165,6 @@ function HouseScene({ tick }) {
       </g>
       <NodeLabel x={HOUSE_X} y={HOUSE_Y + 65} text="YOUR HOME"/>
 
-      {/* GRID — bottom-left, vertically aligned with the community houses */}
       <g transform={`translate(${GRID_X}, ${COMM_Y + 5})`}>
         <rect x="-2" y="-22" width="4" height="44" fill="#6B7370"/>
         <rect x="-18" y="-26" width="36" height="5" rx="0.5" fill="#6B7370"/>
@@ -180,7 +174,6 @@ function HouseScene({ tick }) {
       </g>
       <NodeLabel x={GRID_X} y={COMM_Y + 50} text="GRID"/>
 
-      {/* COMMUNITY — bottom-right */}
       <g transform={`translate(${COMM_X}, ${COMM_Y})`}>
         {[
           { x: -26, y: 6,  h: 30 },
@@ -197,7 +190,6 @@ function HouseScene({ tick }) {
       </g>
       <NodeLabel x={COMM_X} y={COMM_Y + 50} text="COMMUNITY"/>
 
-      {/* FLOWS — sun → home, home → community ONLY */}
       <FlowLine
         path={`M ${SUN_X} ${SUN_Y + 25} Q ${SUN_X} ${HOUSE_Y - 60} ${HOUSE_X} ${HOUSE_Y - 32}`}
         tick={tick} color="#FFB83D" speed={0.7} particles={3} dashed/>
@@ -205,7 +197,6 @@ function HouseScene({ tick }) {
         path={`M ${HOUSE_X + 30} ${HOUSE_Y + 30} Q ${HOUSE_X + 65} ${HOUSE_Y + 80} ${COMM_X - 30} ${COMM_Y - 10}`}
         tick={tick} color="#00A862" speed={0.9} particles={4}/>
 
-      {/* IDLE LINK — home ↔ grid: dashed grey, no particles */}
       <path
         d={`M ${HOUSE_X - 30} ${HOUSE_Y + 30} Q ${HOUSE_X - 65} ${HOUSE_Y + 80} ${GRID_X + 22} ${GRID_Y - 18}`}
         fill="none" stroke="#9CA3A0" strokeWidth="1.5"
@@ -226,7 +217,6 @@ function NodeLabel({ x, y, text }) {
   );
 }
 
-// Animated particle flow along an SVG path using getPointAtLength.
 function FlowLine({ path, tick, color, speed = 1, particles = 4, dashed }) {
   const ref = React.useRef();
   const [len, setLen] = React.useState(0);
